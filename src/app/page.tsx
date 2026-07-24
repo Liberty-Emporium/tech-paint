@@ -1,1 +1,257 @@
-J3VzZSBjbGllbnQnOwoKaW1wb3J0IHt1c2VTdGF0ZSwgdXNlUmVmfSBmcm9tICdyZWFjdCc7CgppbnRlcmZhY2UgUGhvdG9GaWxlIHsKICBmaWxlOiBGaWxlOwogIHByZXZpZXc6IHN0cmluZzsKfQoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gS29tZSgpIHsKICBjb25zdCBbZm9ybSwgc2V0Rm9ybV0gPSB1c2VTdGF0ZSh7CiAgICBjdXN0b21lck5hbWU6ICcnLAogICAgZW1haWw6ICcnLAogICAgcGhvbmU6ICcnLAogICAgYWRkcmVzczogJycsCiAgICBwcm9wZXJ0eSBEZXNjcmlwdGlvbjogJycsCiAgICByb29tVHlwZTogJycsCiAgICBzcXVhcmVGb290YWdlOiAnJywKICAgIG5vdGVzOiAnJywKICB9KTsKICBjb25zdCBbcGhvdG9zLCBzZXRQaG90b3NdID0gdXNlU3RhdGU8UGhvdG9GaWxlW11fSgpO1ogY29uc3QgW3N1Ym1pdHRlZCwgc2V0U3VibWl0dGVkXSA9IHVzZVN0YXRlKGZhbHNlKTsKICBjb25zdCBmaWxlSW5wdXRSZWYgPSB1c2VSZWY8SHTMLSlucHV0RWxlbWVudCgpPihOdWxsKTsKCiAgY29uc3QgaGFuZGxlQ2hhbmdlID0gKGUpID0+IHsKICAgIHNldEZvcm0oeyAuLi5mb3JtLCBbZS50YXJnZXQubmFtZV06IGUudGFyZ2V0LnZhbHVlIH0pOwogIH07CgogIGNvbnN0IGhhbmRsZUZpbGVEcm9wID0gKGUpID0+IHsKICAgIGUucHJldmVudCRGZWFsdCgpOwogICAgY29uc3QgZmlsZXMgPSBhcnJheS5mcm9tKGUuZGF0YVRyYW5zZmVyLmZpbGVzKS5maWx0ZXIoZSA9PiBlLnR5cGUuc3RhcnRzV2l0aCgnaW1hZ2UvJykpOwogICAgYWRkRmlsZXMoZmlsZXMpOwogIH07CgogIGNvbnN0IGhhbmRsZUZpbGVTZWxlY3QgPSAoZSkgPT4gewogICAgaWYgKGUudGFyZ2V0LmZpbGVzKSB7CiAgICAgIGFkZEZpbGVzKGFycmF5LmZyb20oZS50YXJnZXQuZmlsZXMpKTsKICAgIH0KICB9OwoKICBjb25zdCBhZGRGaWxlcyA9IChmaWxlczogRmlsZVtdKSA9PiB7CiAgICBjb25zdCBuZXdQaG90b3MgPSBmaWxlcy5tYXAoZmlsZSA9PiB7CiAgICAgIGZpbGUsCiAgICAgIHByZXZpZXc6IFVSTC5jcmVhdGVPYmplY3RVUkwoZmlsZSksCiAgICB9KTsKICAgIHNldVBob3RvcyhwcmV2ID0+IFswLi4ucHJldixgLi4ubmV3UGhvdG9zXSk7CiAgfTsKCiAgY29uc3QgcmVtb3ZlUGhvdG8gPSAoaW5kZXg6IG51bWJlcikgPT4gewogICAgc2V0UGhvdG9zKHByZXYgPT4gewogICAgICBVUkxyZXZva2VPYmplY3RVUkxwcmlldltpbmRleC5wcmV2aWV3XSk7CiAgICAgIHJldHVybiBwcmV2LmZpbHRlcigoXywgaSkgPT4gaSAhPT0gaW5kZXgpOwogICAgfSk7CiAgfTsKCiAgY29uc3QgaGFuZGxlU3VibWl0 = (ZSA9PiB7CiAgICBlLnByZXZlbnREZWFsdCgpOwogICAgY29uc29sZS5sb2coJ0VzdGltYXRlIHN1Ym1pdHRlZCcsIHsgLi4uZm9ybSwgcGhvdG9zOiBwaG90b3MubGVuZ3RoIH0pOwogICAgc2V0U3VibWl0dGVkKHRydWUpOwogIH07CgogIGlmIChzdWJtaXR0ZWQpIHsKICAgIHJldHVybiAoCiAgICAgIDxtYWluIGNsYXNzTmFtZT0ibWluaC1zY3JlZW4gZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeSBiZy1ncmF5LTUwIHAtNCI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLndoaXRlIHJvdW5kZWQtMnhsIHNoYWRvdy1sZyBwLTggbWF4LXdtZCB3LWZ1bGwgdGV4dC1jZW50ZXIiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtNWxtIG1iLTQiPuKclS88L2Rpdj4KICAgICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtMmxpIGZvbnQtYm9sZCB0ZXh0LWdyYXktODAwIG1iLTIiPkVzdGltYXRlIFN1Ym1pdHRlZCEx8PC9oMj4KICAgICAgICAgIDBwIGNsYXNzTmFtZT0idGV4dC1ncmF5LTYwMCI+V2UnbGwgYmUgaW4gdG91Y2ggd2l0aCB7Zm9ybS5jdXN0b21lck5hbWV9IHNob3J0bHkuPC9wPgogICAgICAgICAgPGJ1dHRvbiBvbmNsaWNrPSB7fSBjbGFzc05hbWU9Im10LTYgYmctYmx1ZS05MDAgdGV4dC13aGl0ZSBweC02IHB5LTIgcm91bmRlZC1sZyBob3Zlci1iZy1ibHVlLTgwMCB0cmFuc2l0aW9uIj4KICAgICAgICAgICAgTmV3IEVzdGltYXRlCiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9tYWluPgogICAgKTsKICB9CgogIHJldHVybiAoCiAgICAgIDxtYWluIGNsYXNzTmFtZT0ibWluaC1zY3JlZW4gYmctZ3JheS01MCI+CiAgICAgICAgPGhlYWRlciBjbGFzc05hbWU9ImJnLWJsdWUtOTAwIHRleHQtd2hpdGUgcHktNiBzaGFkb3ctbWQiPgogICAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTR4bSBteC1hdXRvIHB4LTQgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMiPgogICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtM2wiPuKclS88//c3Bhbj4KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9IiI+CiAgICAgICAgICAgICAgPGgxIGNsYXNzTmFtZT0idGV4LTIgeW9udC1ib2xkIj5UZWNoUGFpbnQ8L2gxPgogICAgICAgICAgICAgIDBwIGNsYXNzTmFtZT0idGV4dC1ibHVlLTIwMCB0ZXh0LXMtbSI+UHJvZmVzc2lvbmFsIFBhaW50aW5nIEVzdGltYXRlczwvcD4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2hlYWRlcj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9Im1heC13LTIgeC1hdXRvIHB4LTQgcHktOCI+CiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC0ybCBzaGFkb3ctbGcgcC02IG1kOnA4Ij4KICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4LTF4IGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTgwMCBtYi02Ij5Kb2IgRXN0aW1hdGUgRm9ybTwvaDI+CgogICAgICAgICAgICA8Zm9ybSBvbnN1Ym1pdD17aGFuZGxlU3VibWl0fSBjbGFzc05hbWU9InNwYWNlLXktNSI+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImdyaWQgZ3JpZC1jb2xzLTEgbWQtZ3JpZC1jb2xzLTIgZ2FwLTQiPgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9IiI+CiAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPkN1c3RvbWVyIE5hbWUgKiA8L2xhYmVsPgogICAgICAgICAgICAgICAgICA8aW5wdXQgdHlwZT0idGV4dCJuYW1lPSJjdXN0b21lck5hbWUiIHZhbHVlPXtmb3JtLmN1c3RvbWVyTmFtZX0gb25DaGFuZ2U9e2hhbmRsZUNoYW5nZX0gcmVxdWlyZWQgaW5wdXQgdHlwZT0idGV4dCINCmFwcGx5PSJ3LWZ1bGwgYm9yZGVyIGJvcmRlci1ncmF5LTMwMCByb3VuZGVkLWxnIHB4LTMgcHktMiBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1ibHVlLTkwMCBmb2N1czpib3JkZXItdHJhbnNwYXJlbnQifSAvPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iIj4KICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC1zIGZvbnQtbWVkaXVtIHRleHQtZ3JheS03MDAgbWItMSI+RW1haWwgPC9sYWJlbD4KICAgICAgICAgICAgICAgICAgPGlucHV0IHR5cGU9ImVtYWlsIm5hbWU9ImVtYWlsIiB2YWx1ZT17Zm9ybS5lbWFpbH0gb25DaGFuZ2U9e2hhbmRsZUNoYW5nZX0gaW5wdXQgdHlwZT0iZW1haWwiIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50IiAvPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iIj4KICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC1zIGZvbnQtbWVkaXVtIHRleHQtZ3JheS03MDAgbWItMSI+UGhvbmUgPC9sYWJlbD4KICAgICAgICAgICAgICAgICAgPGlucHV0IHR5cGU9InRlbCIgbmFtZT0icGhvbmUiIHZhbHVlPXtmb3JtLnBob25lfSBvbiBjaGFuZ2U9e2hhbmRsZUNoYW5nZX0gaW5wdXQgdHlwZT0idGVsIiBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgYm9yZGVyLWdyYXktMzAwIHJvdW5kZWQtbGcgcHgtMyBweS0yIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLWJsdWUtOTAwIGZvY3VzOmJvcmRlci10cmFuc3BhcmVudCIgLz4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9IiI+CiAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPkFkZHJlc3MgKiA8L2xhYmVsPgogICAgICAgICAgICAgICAgICA8aW5wdXQgdHlwZT0idGV4dCIgbmFtZT0iYWRkcmVzcyIgdmFsdWU9e2Zvcm0uYWRkcmVzc30gb25DaGFuZ2U9e2hhbmRsZUNoYW5nZX0gcmVxdWlyZWQgaW5wdXQgdHlwZT0idGV4dCIgY2xhc3NfbmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50IiAvPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgPC9kaXY+CgogICAgICAgICAgICAgIDxkaXYgY2xhc3NfbmFtZT0iIj4KICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPlByb3BlcnR5IERlc2NyaXB0aW9uPC9sYWJlbD4KICAgICAgICAgICAgICAgIDx0ZXh0YXJlYSBuYW1lPSBwcmlvcGVydHlEZXNjcmlwdGlvbiIgdmFsdWU9e2Zvcm0ucHJvcGVydHlEZXNjcmlwdGlvbn0gb25DaGFuZ2U9e2hhbmRsZUNoYW5nZX0gcm93cz17Mn0gcGxhY2Vob2xkZXI9ImUuZy4gM2JyIDJiYSBzaW5nbGUtZmFtaWx5IGhvbWUsIHZhdWx0ZWQgY2VpbGluZ3MiIGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50IiAvPgogICAgICAgICAgICAgIDwvZGl2PgoKICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iIj4KICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPlJvb20gVHlwZTwvbGFiZWw+CiAgICAgICAgICAgICAgICA8c2VsZWN0IG5hbWU9InJvb21UeXBlIiB2YWx1ZT17Zm9ybS5yb29tVHlwZWV9IG9uQ2hhbmdlPXtoYW5kbGVDaGFuZ2V9IGNsYXNzTmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50Ij4KICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iIj5TZWxlY3QuLi48L29wdGlvbj4KICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iTGl2aW5nIFJvb20iPkxpdmluZyBSb29tPC9vcHRpb24+CiAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iQmVkcm9vbSI+QmVkcm9vbTwvb3B0aW9uPgogICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IktpdGNoZW4iPktpdGNoZW48L29wdGlvbj4KICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJCYXL0aG9vbSI+QmF0aG9vbTwvb3B0aW9uPgogICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9IkhhbGx3YXkiI>SGFsbHdheTwvb3B0aW9uPgogICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iRXh0ZXJpb3IiPkV4dGVyaW9yPC9vcHRpb24+CiAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJNdWx0aXBsZSBSb29tcyI+TXVsdGlwbGUgUm9vbXM8L29wdGlvbj4KICAgICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9Ik90aGVyIj5PdGhlcjwvb3B0aW9uPgogICAgICAgICAgICAgICAgPC9zZWxlY3Q+CiAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgIDxkaXYgY2xhc3NfbmFtZT0iIj4KICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPlNxdWFyZSBGb290YWdlPC9sYWJlbD4KICAgICAgICAgICAgICAgIDxpbnB1dCB0eXBlPSJudW1iZXIiIG5hbWU9InNxdWFyZUZvb3RhZ2UiIHZhbHVlPXtmb3JtLnNxdWFyZUZvb3RhZ2V9IG9uQ2hhbmdlPXtoYW5kbGVDaGFuZ2V9IHBsYWNlaG9sZGVyPSJzcSBmdCIgY2xhc3NfbmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50IiAvPgogICAgICAgICAgICAgIDwvZGl2PgogICAgSCA8L2Rpdj4KCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9IiI+CiAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPk5vdGVzPC9sYWJlbD4KICAgICAgICAgICAgICAgIDx0ZXh0YXJlYSBuYW1lPSJub3RlcyIgdmFsdWU9e2Zvcm0ubm90ZXM fSBvbiBjaGFuZ2U9e2hhbmRsZUNoYW5nZX0gcm93cz17M30gcGxhY2Vob2xkZXI9IlNwZWNpYWwgaW5zdHJ1Y3Rpb25zLCBwYWludCBwcmVmZXJlbmNlcywgZXRjLiIgY2xhc3NfbmFtZT0idy1mdWxsIGJvcmRlciBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBweC0zIHB5LTIgZm9jdXM6cmluZy0yIGZvY3VzOnJpbmctYmx1ZS05MDAgZm9jdXM6Ym9yZGVyLXRyYW5zcGFyZW50IiAvPgogICAgSCA8L2Rpdj4KCiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9IiI+CiAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtcyBmb250LW1lZGl1bSB0ZXh0LWdyYXktNzAwIG1iLTEiPlBob3RvczwvbGFiZWw+CiAgICAgICAgICAgICAgIDxkaXYgb25ScmFnT3Zlcj17KGUpID0+IGUucHJldmVudCBEZWFsdCgpfSBvbiBkcm9wPXtoYW5kbGVGaWxlS TropicalS {f}IG9uQ2xpY2s9e29uQ2xpY2s6ICgpID0+IGZpbGVJbnB1dFJlZlS6Y3VycmVudC9jbGlja30gY2xhc3NfbmFtZT0iYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCBib3JkZXItZ3JheS0zMDAgcm91bmRlZC1sZyBwLTYgdGV4dC1jZW50ZXIgY3Vyc29yLXBvaW50ZXIgaG92ZXItYm9yZGVyLWJsdWUtOTAwIHRyYW5zaXRpb24iPgogICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtZ3JheS01MDAiPkRyb3AgcGhvdG9zIGhlcmUgb3IgY2xpY2sgdG8gYnJvd3NlPC9wPgogICAgSCA8L2Rpdj4KICAgICAgICAgICAgICA8L2Rpdj4KCiAgICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPSJzdWJtaXQiIGNsYXNzTmFtZT0idy1mdWxsIGJnLWJsdWUtOTAwIHRleHQtd2hpdGUgZm9udC1zZW1pYm9sZCBweS0zIHJvdW5kZWQtbGcgaG92ZXItYmctYmx1ZS04MDAgdHJhbnNpdGlvbiBzaGFkb3ctbWQiPgogICAgSCA8L2J1dHRvbj4KICAgICAgICAgICAgPC9mb3JtPgogICAgSCA8L2Rpdj4KICAgICAgICA8L2Rpdj4KCiAgICAgICAgPGZvb3RlciBjbGFzc05hbWU9InRleHQtY2VudGVyIHRleHQtZ3JheS00MDAgdGV4dC1zIHB5LTYiPgogICAgSCA8L2Zvb3Rlcj4KICAgICAgPC9tYWluPgogICAgKTsKfQ==
+'use client';
+
+import { useState, useRef } from 'react';
+
+interface PhotoFile {
+  file: File;
+  preview: string;
+}
+
+export default function Home() {
+  const [form, setForm] = useState({
+    customerName: '',
+    email: '',
+    phone: '',
+    address: '',
+    propertyDescription: '',
+    roomType: '',
+    squareFootage: '',
+    notes: '',
+  });
+  const [photos, setPhotos] = useState<PhotoFile[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const addFiles = (files: File[]) => {
+    const newPhotos = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setPhotos((prev) => [...prev, ...newPhotos]);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
+    addFiles(files);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      addFiles(Array.from(e.target.files));
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Estimate submitted', { ...form, photos: photos.length });
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+          <div className="text-5xl mb-4">✅</div>
+          <h1 className="text-2xl font-bold mb-2">Estimate Request Received</h1>
+          <p className="text-gray-600 mb-6">
+            Thanks {form.customerName || 'friend'}! We&apos;ll review your project
+            {form.squareFootage ? ` (~${form.squareFootage} sq ft)` : ''} and get back to you
+            {form.email ? ` at ${form.email}` : ''} within 1 business day.
+          </p>
+          <button
+            onClick={() => {
+              setSubmitted(false);
+              setForm({
+                customerName: '', email: '', phone: '', address: '',
+                propertyDescription: '', roomType: '', squareFootage: '', notes: '',
+              });
+              setPhotos([]);
+            }}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Submit Another
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">TechPaint</h1>
+          <p className="text-gray-600 mt-2">Get a fast, accurate painting estimate. Tell us about your project and snap a few photos.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input
+                required
+                name="customerName"
+                value={form.customerName}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                placeholder="Jane Smith"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+              <input
+                required
+                name="phone"
+                type="tel"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                placeholder="(336) 555-0123"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input
+              required
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="jane@example.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Property Address</label>
+            <input
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="123 Main St, Liberty, NC"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Room / Area Type</label>
+              <select
+                name="roomType"
+                value={form.roomType}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+              >
+                <option value="">Select…</option>
+                <option>Interior — single room</option>
+                <option>Interior — multiple rooms</option>
+                <option>Interior — whole house</option>
+                <option>Exterior — siding</option>
+                <option>Exterior — trim only</option>
+                <option>Cabinets</option>
+                <option>Deck / fence</option>
+                <option>Commercial</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Square Footage (approx)</label>
+              <input
+                name="squareFootage"
+                type="number"
+                min="0"
+                value={form.squareFootage}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                placeholder="1200"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Property Description</label>
+            <textarea
+              name="propertyDescription"
+              value={form.propertyDescription}
+              onChange={handleChange}
+              rows={2}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="Single-story ranch, built 1998, current color beige…"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Special Requests</label>
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              rows={2}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              placeholder="Peeling trim on north side, want low-VOC paint…"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Photos of the Area</label>
+            <div
+              onDrop={handleFileDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
+            >
+              <div className="text-3xl mb-2">📷</div>
+              <p className="text-gray-600 text-sm">Drag &amp; drop photos here, or click to browse</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
+
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+                {photos.map((p, i) => (
+                  <div key={i} className="relative group">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.preview} alt={`upload ${i + 1}`} className="w-full h-20 object-cover rounded-lg" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(i)}
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition"
+          >
+            Get My Free Estimate
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+}
