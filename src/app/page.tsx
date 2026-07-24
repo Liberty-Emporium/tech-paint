@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef } from 'react';
 
 interface PhotoFile {
@@ -8,6 +9,7 @@ interface PhotoFile {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [form, setForm] = useState({
     customerName: '',
     email: '',
@@ -21,6 +23,28 @@ export default function Home() {
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (status === 'loading') {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-blue-600 text-lg">Loading…</div>
+      </main>
+    );
+  }
+
+  if (!session) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">TechPaint</h1>
+          <p className="text-gray-600 mt-2">Please sign in to access your estimates</p>
+          <a href="/login" className="mt-6 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+            Sign In
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -55,8 +79,12 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Estimate submitted', { ...form, photos: photos.length });
+    console.log('Estimate submitted', { ...form, photos: photos.length, user: session.user?.email });
     setSubmitted(true);
+  };
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/login' });
   };
 
   if (submitted) {
@@ -79,7 +107,7 @@ export default function Home() {
               });
               setPhotos([]);
             }}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             Submit Another
           </button>
@@ -90,11 +118,23 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 py-10 px-4">
+      <header className="max-w-2xl mx-auto mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">TechPaint</h1>
+          <p className="text-gray-600 text-sm">Signed in as {session.user?.email}</p>
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="text-sm text-gray-500 hover:text-gray-700"
+        >
+          Sign out
+        </button>
+      </header>
+
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TechPaint</h1>
-          <p className="text-gray-600 mt-2">Get a fast, accurate painting estimate. Tell us about your project and snap a few photos.</p>
-        </div>
+          <p className="text-gray-600 mt-2">Get a fast, accurate painting estimate. Tell us about your project and snap a few photos.</        </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -214,7 +254,7 @@ export default function Home() {
               className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
             >
               <div className="text-3xl mb-2">📷</div>
-              <p className="text-gray-600 text-sm">Drag &amp; drop photos here, or click to browse</p>
+              <p className="text-gray-600 text-sm">Drag & drop photos here, or click to browse</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -229,7 +269,6 @@ export default function Home() {
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
                 {photos.map((p, i) => (
                   <div key={i} className="relative group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.preview} alt={`upload ${i + 1}`} className="w-full h-20 object-cover rounded-lg" />
                     <button
                       type="button"
