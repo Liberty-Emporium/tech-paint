@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Simple admin check - in production use proper password hashing
         if (credentials.email === "admin@techpaint.com" && credentials.password === "admin123") {
           return {
             id: "1",
@@ -30,6 +29,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: "/login",
@@ -37,15 +37,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
+        (session.user as any).id = token.id;
         (session.user as any).role = token.role;
       }
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };
