@@ -134,7 +134,8 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">TechPaint</h1>
-          <p className="text-gray-600 mt-2">Get a fast, accurate painting estimate. Tell us about your project and snap a few photos.</        </div>
+          <p className="text-gray-600 mt-2">Get a fast, accurate painting estimate. Tell us about your project and snap a few photos.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
