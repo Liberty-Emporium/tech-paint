@@ -11,20 +11,33 @@ const store: Record<string, any> = global.__estimates || (global.__estimates = {
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
+    const ct = request.headers.get('content-type') || '';
+    let customerName: string, customerEmail: string, customerPhone: string,
+        customerAddress: string, propertyDescription: string, roomType: string,
+        squareFootageRaw: string, notes: string, photos: File[] = [];
 
-    // Extract form fields
-    const customerName = formData.get('customerName') as string;
-    const customerEmail = formData.get('customerEmail') as string;
-    const customerPhone = formData.get('customerPhone') as string;
-    const customerAddress = formData.get('customerAddress') as string;
-    const propertyDescription = formData.get('propertyDescription') as string;
-    const roomType = formData.get('roomType') as string;
-    const squareFootageRaw = formData.get('squareFootage') as string;
-    const notes = formData.get('notes') as string;
-
-    // Get photos
-    const photos = formData.getAll('photos') as File[];
+    if (ct.includes('application/json')) {
+      const body = await request.json();
+      customerName   = body.customerName   || '';
+      customerEmail  = body.customerEmail  || '';
+      customerPhone  = body.customerPhone  || '';
+      customerAddress = body.customerAddress || '';
+      propertyDescription = body.propertyDescription || '';
+      roomType       = body.roomType       || '';
+      squareFootageRaw    = body.squareFootage    || '';
+      notes          = body.notes          || '';
+    } else {
+      const formData = await request.formData();
+      customerName   = (formData.get('customerName')   as string) || '';
+      customerEmail  = (formData.get('customerEmail')  as string) || '';
+      customerPhone  = (formData.get('customerPhone')  as string) || '';
+      customerAddress = (formData.get('customerAddress') as string) || '';
+      propertyDescription = (formData.get('propertyDescription') as string) || '';
+      roomType       = (formData.get('roomType')       as string) || '';
+      squareFootageRaw    = (formData.get('squareFootage')    as string) || '';
+      notes          = (formData.get('notes')          as string) || '';
+      photos = formData.getAll('photos') as File[];
+    }
 
     // Validate required fields
     if (!customerName || !customerEmail || !customerPhone || !customerAddress || !propertyDescription) {
