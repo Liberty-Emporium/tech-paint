@@ -13,15 +13,19 @@ const store: Record<string, any> = global.__estimates || (global.__estimates = {
 function readSettings() {
   try {
     const path = '/home/django/tech-paint/settings.json';
-    if (existsSync(path)) {
-      return JSON.parse(readFileSync(path, 'utf-8'));
-    }
+    if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf-8'));
   } catch {}
   return {};
 }
 
-// Try to generate an AI-powered estimate via OpenRouter.
-// Returns null if no API key or on failure; caller falls back to rule-based.
+// Convert a File to a base64 data URL for the vision API.
+async function fileToBase64Url(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const type = file.type || 'image/jpeg';
+  return `data:${type};base64,${buffer.toString('base64')}`;
+}
+
+// Try AI estimate via OpenRouter with optional photo analysis.
 async function tryAIEstimate(
   apiKey: string,
   model: string,
@@ -33,18 +37,20 @@ async function tryAIEstimate(
     roomType: string;
     squareFootage: string;
     notes: string;
-  }
+  },
+  photoDataUrls: string[] // base64 data URLs
 ): Promise<{ items: Array<{ id: string; description: string; quantity: number; unitPrice: number; total: number }>; total: number } | null> {
   try {
-    const prompt = `You are a professional painting contractor estimating tool. Based on the following project details, generate a detailed estimate.
+    const textPrompt = `You are a professional painting contractor estimating tool. Generate a detailed painting estimate.
 
 Customer: ${info.customerName}
 Project: ${info.propertyDescription}
 Room/Area type: ${info.roomType || 'interior'}
 Square footage: ${info.squareFootage || 'unknown'} sq ft
 Notes: ${info.notes || 'none'}
+${photoDataUrls.length > 0 ? `\nI've included ${photoDataUrls.length} photo(s) of the space. Analyze the walls, surfaces, trim, ceilings, and any prep work needed. Factor in:\n- Surface condition (holes, cracks, peeling paint, stains)\n- Number of coats needed\n- Trim complexity\n- Ceiling height\n- Any special surfaces (textured, wallpaper removal, etc.)` : '\n(No photos provided — estimate based on description only.)'}
 
-Respond with ONLY valid JSON in this format, nothing else:
+Respond with ONLY valid JSON, no markdown fences:
 {
   "items": [
     {"description": "line item description", "quantity": 500, "unitPrice": 2.50, "total": 1250.00}
@@ -52,7 +58,13 @@ Respond with ONLY valid JSON in this format, nothing else:
   "total": 1250.00
 }
 
-Include realistic line items for paint, labor, prep work, materials, etc. Use current market rates for professional painting in the US.`;
+Include realistic line items for paint, labor, prep work, materials, etc. Use current US market rates for professional painting.`;
+
+    // Build message content: text + optional images
+    const content: any[] = [{ type: 'text', text: textPrompt }];
+    for (const url of photoDataUrls) {
+      content.push({ type: 'image_url', image_url: { url } });
+    }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -63,17 +75,21 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
         'X-Title': 'TechPaint',
       },
       body: JSON.stringify({
-        model: model || 'meta-llama/llama-3.1-8b-instruct:free',
+        model: model || 'google/gemma-4-31b-it:free',
         messages: [
           { role: 'system', content: 'You are a painting estimate generator. Respond with ONLY valid JSON, no markdown, no explanation.' },
-          { role: 'user', content: prompt },
+          { role: 'user', content },
         ],
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 4000,
       }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('OpenRouter error:', response.status, errText.substring(0, 500));
+      return null;
+    }
 
     const data = await response.json();
     const text = data.choices?.[0]?.message?.content?.trim() || '';
@@ -100,7 +116,6 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
   }
 }
 
-// Rule-based fallback when AI is not configured or fails.
 function ruleBasedEstimate(roomType: string, squareFootageRaw: string) {
   const squareFootage = parseInt(squareFootageRaw || '0', 10) || 0;
   const rateByRoom: Record<string, number> = {
@@ -158,19 +173,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Save photos
+    // Save photos to disk AND convert to base64 for AI
     const uploadDir = join(process.cwd(), 'uploads', 'estimates');
     await mkdir(uploadDir, { recursive: true });
     const photoUrls: string[] = [];
+    const photoDataUrls: string[] = [];
+
     for (const photo of photos) {
       const filename = `${uuidv4()}-${photo.name}`;
       const filepath = join(process.cwd(), 'uploads', 'estimates', filename);
       const buffer = Buffer.from(await photo.arrayBuffer());
       await writeFile(filepath, buffer);
       photoUrls.push(`/api/uploads/estimates/${filename}`);
+      // Convert to base64 data URL for vision model
+      const type = photo.type || 'image/jpeg';
+      photoDataUrls.push(`data:${type};base64,${buffer.toString('base64')}`);
     }
 
-    // Try AI generation first, fall back to rule-based
+    // Try AI generation (with photos if available), fall back to rule-based
     const settings = readSettings();
     let estimateResult: { items: any[]; total: number } | null = null;
 
@@ -180,7 +200,8 @@ export async function POST(request: NextRequest) {
         settings.llmModel,
         settings.llmTemperature,
         settings.llmMaxTokens,
-        { customerName, propertyDescription, roomType, squareFootage: squareFootageRaw, notes }
+        { customerName, propertyDescription, roomType, squareFootage: squareFootageRaw, notes },
+        photoDataUrls
       );
     }
 
@@ -210,7 +231,7 @@ export async function POST(request: NextRequest) {
       validUntil,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      generatedBy: settings.llmApiKey ? 'ai' : 'rule-based',
+      generatedBy: settings.llmApiKey ? (photoDataUrls.length > 0 ? 'ai-vision' : 'ai-text') : 'rule-based',
     };
 
     store[estimateId] = estimate;

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'API key required' }, { status: 400 });
     }
 
-    const model = llmModel || 'meta-llama/llama-3.1-8b-instruct:free';
+    const model = llmModel || 'google/gemma-4-31b-it:free';
     const temperature = llmTemperature ?? 0.7;
     const max_tokens = llmMaxTokens ?? 4000;
 

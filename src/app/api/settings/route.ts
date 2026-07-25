@@ -23,7 +23,7 @@ const defaultSettings = {
   nextAuthUrl: '',
   nextAuthSecret: '',
   llmProvider: 'openrouter',
-  llmModel: 'meta-llama/llama-3.1-8b-instruct:free',
+  llmModel: 'google/gemma-4-31b-it:free',
   llmApiKey: '',
   llmTemperature: 0.7,
   llmMaxTokens: 4000,
