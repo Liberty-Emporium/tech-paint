@@ -32,7 +32,7 @@ export default function LoginForm() {
       email: formDataObj.email as string,
       password: formDataObj.password as string,
       redirect: false,
-      callbackUrl: '/',
+      callbackUrl: callbackUrl,
     });
 
     setLoading(false);
@@ -40,7 +40,8 @@ export default function LoginForm() {
     if (result?.error) {
       setError('Invalid email or password');
     } else {
-      window.location.href = '/';
+      router.push(callbackUrl);
+      router.refresh();
     }
   };
 
@@ -60,6 +61,8 @@ export default function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <input type="hidden" name="csrfToken" value={csrfToken} />
+          <input type="hidden" name="callbackUrl" value="/"/>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
