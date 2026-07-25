@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+const FREE_MODELS = [
+  { id: 'meta-llama/llama-3.1-8b-instruct:free', name: 'Llama 3.1 8B Instruct (Free)', provider: 'Meta' },
+  { id: 'meta-llama/llama-3.1-70b-instruct:free', name: 'Llama 3.1 70B Instruct (Free)', provider: 'Meta' },
+  { id: 'google/gemma-2-9b-it:free', name: 'Gemma 2 9B (Free)', provider: 'Google' },
+  { id: 'mistralai/mistral-7b-instruct:free', name: 'Mistral 7B Instruct (Free)', provider: 'Mistral' },
+  { id: 'microsoft/phi-3-mini-128k-instruct:free', name: 'Phi-3 Mini 128K (Free)', provider: 'Microsoft' },
+  { id: 'nousresearch/hermes-3-llama-3.1-405b:free', name: 'Hermes 3 405B (Free)', provider: 'Nous Research' },
+  { id: 'qwen/qwen-2-7b-instruct:free', name: 'Qwen 2 7B Instruct (Free)', provider: 'Alibaba' },
+  { id: 'deepseek/deepseek-r1-0528:free', name: 'DeepSeek R1 (Free)', provider: 'DeepSeek' },
+];
+
 interface Settings {
   emailEnabled: boolean;
   smtpHost: string;
@@ -29,8 +40,8 @@ export default function SettingsPage() {
     smtpFrom: '',
     nextAuthUrl: '',
     nextAuthSecret: '',
-    llmProvider: 'openai',
-    llmModel: 'gpt-4o',
+    llmProvider: 'openrouter',
+    llmModel: 'meta-llama/llama-3.1-8b-instruct:free',
     llmApiKey: '',
     llmTemperature: 0.7,
     llmMaxTokens: 4000,
@@ -40,6 +51,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [testingEmail, setTestingEmail] = useState(false);
   const [testingLLM, setTestingLLM] = useState(false);
+  const [llmTestResult, setLlmTestResult] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -129,36 +141,30 @@ export default function SettingsPage() {
 
   const handleTestLLM = async () => {
     if (!settings.llmApiKey) {
-      setMessage({ type: 'error', text: 'Please enter an API key first' });
+      setMessage({ type: 'error', text: 'Please enter your OpenRouter API key first. Get one free at openrouter.ai' });
       return;
     }
 
     setTestingLLM(true);
     setMessage(null);
+    setLlmTestResult('');
 
     try {
       const res = await fetch('/api/llm/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider: settings.llmProvider,
-          model: settings.llmModel,
-          apiKey: settings.llmApiKey,
-          temperature: settings.llmTemperature,
-          maxTokens: settings.llmMaxTokens,
-          prompt: 'Say "Hello from TechPaint!" in a friendly way.',
-        }),
+        body: JSON.stringify(settings),
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
-        setMessage({ type: 'success', text: `LLM test successful! Response: ${data.response?.substring(0, 100)}...` });
+        setMessage({ type: 'success', text: 'LLM connection successful!' });
+        setLlmTestResult(data.response || '');
       } else {
-        const error = await res.json();
-        setMessage({ type: 'error', text: error.error || 'LLM test failed' });
+        setMessage({ type: 'error', text: data.error || 'LLM test failed' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'LLM test failed' });
+      setMessage({ type: 'error', text: 'LLM test failed — check your API key' });
     } finally {
       setTestingLLM(false);
     }
@@ -320,55 +326,25 @@ export default function SettingsPage() {
             )}
           </section>
 
-          {/* LLM Configuration */}
+          {/* AI Estimate Configuration — OpenRouter Free Models */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l.707.707M21 12h-1M4 12H4 12H3m15.364 6.364l-.707.707M21 12h1m-9 9a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span>LLM Configuration</span>
+              <span>AI Estimate Generation</span>
             </h2>
-            <p className="text-gray-600 mb-6">Configure the AI model used for generating estimates. Supports OpenAI, Anthropic, and other providers.</p>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">LLM Provider</label>
-                <select
-                  name="llmProvider"
-                  value={settings.llmProvider}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value="openai">OpenAI</option>
-                  <option value="anthropic">Anthropic (Claude)</option>
-                  <option value="google">Google (Gemini)</option>
-                  <option value="ollama">Ollama (Local)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-                <select
-                  name="llmModel"
-                  value={settings.llmModel}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value="gpt-4o">GPT-4o (Latest)</option>
-                  <option value="gpt-4o-mini">GPT-4o Mini (Faster, Cheaper)</option>
-                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                  <option value="claude-3-opus">Claude 3 Opus</option>
-                  <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                  <option value="gemini-pro">Gemini Pro</option>
-                  <option value="llama3.1:70b">Llama 3.1 70B (Ollama)</option>
-                  <option value="llama3.1:8b">Llama 3.1 8B (Ollama)</option>
-                </select>
-              </div>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-purple-800">
+                <strong>Powered by OpenRouter</strong> — Use free AI models to generate painting estimates. 
+                Get your free API key at{' '}
+                <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">openrouter.ai/keys</a>
+                {' '}— no credit card required for free models.
+              </p>
             </div>
 
-            <div className="mt-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
               <div className="relative">
                 <input
@@ -376,18 +352,38 @@ export default function SettingsPage() {
                   name="llmApiKey"
                   value={settings.llmApiKey}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 pr-12"
-                  placeholder="sk-... or your API key"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-20 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="sk-or-v1-..."
                 />
                 <button
                   type="button"
                   onClick={handleTestLLM}
                   disabled={testingLLM || !settings.llmApiKey}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 text-sm text-purple-600 hover:text-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {testingLLM ? 'Testing…' : 'Test'}
                 </button>
               </div>
+              {llmTestResult && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 border">
+                  <span className="font-medium text-green-700">AI Response:</span> {llmTestResult}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+              <select
+                name="llmModel"
+                value={settings.llmModel}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              >
+                {FREE_MODELS.map(m => (
+                  <option key={m.id} value={m.id}>{m.provider} — {m.name}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">All models shown are free. Results are cached and used to generate estimate line items.</p>
             </div>
 
             <div className="mt-4 grid md:grid-cols-2 gap-4">
@@ -417,17 +413,6 @@ export default function SettingsPage() {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
-            </div>
-
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={handleTestLLM}
-                disabled={testingLLM || !settings.llmApiKey}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {testingLLM ? 'Testing…' : 'Test LLM Connection'}
-              </button>
             </div>
           </section>
 

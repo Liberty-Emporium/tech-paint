@@ -22,6 +22,11 @@ const defaultSettings = {
   smtpFrom: '',
   nextAuthUrl: '',
   nextAuthSecret: '',
+  llmProvider: 'openrouter',
+  llmModel: 'meta-llama/llama-3.1-8b-instruct:free',
+  llmApiKey: '',
+  llmTemperature: 0.7,
+  llmMaxTokens: 4000,
 };
 
 async function readSettings(): Promise<typeof defaultSettings> {
