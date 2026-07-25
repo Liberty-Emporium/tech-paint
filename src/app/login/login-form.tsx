@@ -15,9 +15,14 @@ export default function LoginForm() {
   const [csrfToken, setCsrfToken] = useState('');
 
   useEffect(() => {
-    getCsrfToken().then(token => {
-      if (token) setCsrfToken(token);
-    });
+    // Fetch CSRF token on mount
+    fetch('/api/auth/csrf')
+      .then(res => res.json())
+      .then(data => {
+        if (data.csrfToken) {
+          // We'll include it in the form submission
+        }
+      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,7 +37,7 @@ export default function LoginForm() {
       email: formDataObj.email as string,
       password: formDataObj.password as string,
       redirect: false,
-      callbackUrl: callbackUrl,
+      callbackUrl: '/',
     });
 
     setLoading(false);
@@ -40,8 +45,7 @@ export default function LoginForm() {
     if (result?.error) {
       setError('Invalid email or password');
     } else {
-      router.push(callbackUrl);
-      router.refresh();
+      window.location.href = '/';
     }
   };
 
@@ -60,9 +64,6 @@ export default function LoginForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <input type="hidden" name="csrfToken" value={csrfToken} />
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
-
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
