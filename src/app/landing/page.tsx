@@ -62,46 +62,13 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Hero visual placeholder */}
-            <div className="relative">
-              <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl shadow-2xl shadow-blue-500/20 p-8 text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                    <span className="text-lg">🎨</span>
-                  </div>
-                  <div>
-                    <p className="font-bold">EST-2026-4180</p>
-                    <p className="text-blue-200 text-sm">Interior Painting — 1,500 sq ft</p>
-                  </div>
-                </div>
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between bg-white/10 rounded-lg px-4 py-2">
-                    <span>Interior painting (1,500 sq ft)</span>
-                    <span className="font-bold">$3,750</span>
-                  </div>
-                  <div className="flex justify-between bg-white/10 rounded-lg px-4 py-2">
-                    <span>Surface prep & priming</span>
-                    <span className="font-bold">$850</span>
-                  </div>
-                  <div className="flex justify-between bg-white/10 rounded-lg px-4 py-2">
-                    <span>Professional labor</span>
-                    <span className="font-bold">$1,880</span>
-                  </div>
-                </div>
-                <div className="border-t border-white/20 pt-4 flex justify-between items-center">
-                  <span className="text-lg">Total</span>
-                  <span className="text-3xl font-bold">$6,480</span>
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-sm text-blue-200">
-                  <span className="w-2 h-2 bg-green-400 rounded-full" />
-                  AI-analyzed from 3 room photos
-                </div>
-              </div>
-              {/* Floating badge */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg px-4 py-3 border border-gray-100">
-                <p className="text-xs text-gray-500">Generated in</p>
-                <p className="text-2xl font-bold text-blue-600">12s</p>
-              </div>
+            {/* Hero image */}
+            <div className="relative flex items-center justify-center">
+              <img
+                src="https://raw.githubusercontent.com/Liberty-Emporium/Logos/main/ChatGPT%20Image%20Jul%2025%2C%202026%2C%2007_17_58%20PM.png"
+                alt="Coltrane Tech Paint — AI-powered painting estimates"
+                className="w-full max-w-lg rounded-2xl shadow-2xl shadow-blue-500/20 object-cover"
+              />
             </div>
           </div>
         </div>
