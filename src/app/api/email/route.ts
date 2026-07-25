@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { emailService } from '@/lib/email';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, ...data } = body;
@@ -29,10 +29,22 @@ export async function POST(request: Request) {
             Object.assign({}, JSON.parse(data));
           }
         } catch {}
+
+        const newSettings = { 
+          ...{ emailEnabled: false, smtpHost: '', smtpPort: 587, smtpUser: '', smtpPass: '', smtpFrom: '', nextAuthUrl: '', nextAuthSecret: '' }, 
+          ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {}, 
+          ...data 
+        };
         
-        const newSettings = { ...{ emailEnabled: false, smtpHost: '', smtpPort: 587, smtpUser: '', smtpPass: '', smtpFrom: '', nextAuthUrl: '', nextAuthSecret: '' }, ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {}, ...data };
-        
-        require('fs').writeFileSync('/home/django/tech-paint/settings.json', JSON.stringify({ ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {}, emailEnabled: data.emailEnabled ?? true, smtpHost: data.smtpHost, smtpPort: data.smtpPort || 587, smtpUser: data.smtpUser, smtpPass: data.smtpPass, smtpFrom: data.smtpFrom || data.smtpUser }, null, 2));
+        require('fs').writeFileSync('/home/django/tech-paint/settings.json', JSON.stringify({ 
+          ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {}, 
+          emailEnabled: data.emailEnabled ?? true, 
+          smtpHost: data.smtpHost, 
+          smtpPort: data.smtpPort || 587, 
+          smtpUser: data.smtpUser, 
+          smtpPass: data.smtpPass, 
+          smtpFrom: data.smtpFrom || data.smtpUser 
+        }, null, 2));
 
         return NextResponse.json({ success: true });
       }
