@@ -12,6 +12,13 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const [csrfToken, setCsrfToken] = useState('');
+
+  useEffect(() => {
+    getCsrfToken().then(token => {
+      if (token) setCsrfToken(token);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,8 +52,14 @@ export default function LoginForm() {
           <p className="text-gray-600 mt-2">Sign in to access your estimates</p>
         </div>
 
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm" role="alert">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
-          <input type="hidden" name="csrfToken" value="" />
+          <input type="hidden" name="csrfToken" value={csrfToken} />
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
