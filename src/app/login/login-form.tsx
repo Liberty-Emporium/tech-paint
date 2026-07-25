@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, getCsrfToken } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginForm() {
@@ -46,6 +46,7 @@ export default function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <input type="hidden" name="csrfToken" value="" />
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
