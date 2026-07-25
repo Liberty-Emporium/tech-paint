@@ -54,7 +54,7 @@ async function writeSettings(settings: typeof defaultSettings): Promise<void> {
 export async function GET() {
   const settings = await readSettings();
   // Don't expose password in GET
-  const { smtpPass, nextAuthSecret, ...safeSettings } = await readSettings();
+  const { smtpPass, nextAuthSecret, llmApiKey, ...safeSettings } = await readSettings();
   return Response.json(safeSettings);
 }
 
