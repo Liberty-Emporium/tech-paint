@@ -241,7 +241,7 @@ export default function EstimateDetailPage() {
                     {estimate.items.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="px-4 py-12 text-center text-gray-500">
-                          No items yet. <a href="#" className="text-blue-600 hover:text-blue-700">Generate estimate with AI</a>
+                          No items yet. <Link href="/estimates/new" className="text-blue-600 hover:text-blue-700">Generate estimate with AI</Link>
                         </td>
                       </tr>
                     ) : (
@@ -387,18 +387,18 @@ export default function EstimateDetailPage() {
                   📄 Download PDF
                 </a>
 
-                <a
-                  href={`/documents/new?estimateId=${estimate.id}`}
+                <Link
+                  href={`/documents?estimateId=${estimate.id}`}
                   className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-center font-medium"
                 >
-                  📁 Upload Document
-                </a>
+                  📁 View Documents
+                </Link>
 
                 <Link
-                  href={`/estimates/${estimate.id}/edit`}
+                  href={`/estimates/new?copy=${estimate.id}`}
                   className="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium"
                 >
-                  ✏️ Edit Estimate
+                  ✏️ Create Similar
                 </Link>
               </div>
             </div>

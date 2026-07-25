@@ -3,10 +3,16 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __estimates: Record<string, any> | undefined;
+}
+const store: Record<string, any> = global.__estimates || (global.__estimates = {});
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    
+
     // Extract form fields
     const customerName = formData.get('customerName') as string;
     const customerEmail = formData.get('customerEmail') as string;
@@ -14,12 +20,12 @@ export async function POST(request: NextRequest) {
     const customerAddress = formData.get('customerAddress') as string;
     const propertyDescription = formData.get('propertyDescription') as string;
     const roomType = formData.get('roomType') as string;
-    const squareFootage = formData.get('squareFootage') as string;
+    const squareFootageRaw = formData.get('squareFootage') as string;
     const notes = formData.get('notes') as string;
-    
+
     // Get photos
     const photos = formData.getAll('photos') as File[];
-    
+
     // Validate required fields
     if (!customerName || !customerEmail || !customerPhone || !customerAddress || !propertyDescription) {
       return NextResponse.json(
@@ -31,41 +37,79 @@ export async function POST(request: NextRequest) {
     // Save photos
     const uploadDir = join(process.cwd(), 'uploads', 'estimates');
     await mkdir(uploadDir, { recursive: true });
-    
+
     const photoUrls: string[] = [];
     for (const photo of photos) {
       const filename = `${uuidv4()}-${photo.name}`;
       const filepath = join(process.cwd(), 'uploads', 'estimates', filename);
       const buffer = Buffer.from(await photo.arrayBuffer());
       await writeFile(filepath, buffer);
-      photoUrls.push(`/uploads/estimates/${filename}`);
+      photoUrls.push(`/api/uploads/estimates/${filename}`);
     }
 
-    // Generate estimate ID
+    // ---- AI estimate generation (rule-based stand-in) ----
+    const squareFootage = parseInt(squareFootageRaw || '0', 10) || 0;
+    // Base rate per sq ft for interior painting, adjusted by room type.
+    const rateByRoom: Record<string, number> = {
+      interior: 2.5,
+      exterior: 3.5,
+      cabinet: 6.0,
+      deck: 4.0,
+      ceiling: 3.0,
+      trim: 1.5,
+    };
+    const rate = rateByRoom[roomType?.toLowerCase()] || 3.0;
+    const paintCost = squareFootage * rate;
+    const laborCost = paintCost * 0.6;
+    const subtotal = paintCost + laborCost;
+    const tax = subtotal * 0.08;
+    const total = Math.round((subtotal + tax) * 100) / 100;
+
+    const items = [
+      {
+        id: uuidv4(),
+        description: `${roomType ? roomType.charAt(0).toUpperCase() + roomType.slice(1) : 'Interior'} painting (${squareFootage} sq ft @ $${rate}/sq ft)`,
+        quantity: squareFootage || 1,
+        unitPrice: rate,
+        total: Math.round(paintCost * 100) / 100,
+      },
+      {
+        id: uuidv4(),
+        description: 'Labor',
+        quantity: 1,
+        unitPrice: Math.round(laborCost * 100) / 100,
+        total: Math.round(laborCost * 100) / 100,
+      },
+    ];
+
     const estimateId = generateEstimateId();
-    
-    // Here you would call your AI service to generate the estimate
-    // For now, we'll create a mock estimate
+    const estimateNumber = `EST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
     const estimate = {
-      id: generateEstimateId(),
-      customerName: formData.get('customerName'),
-      customerEmail: formData.get('customerEmail'),
-      customerPhone: formData.get('customerPhone'),
-      customerAddress: formData.get('customerAddress'),
-      propertyDescription: formData.get('propertyDescription'),
-      roomType: formData.get('roomType'),
-      squareFootage: formData.get('squareFootage'),
-      notes: formData.get('notes'),
+      id: estimateId,
+      estimateNumber,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerAddress,
+      propertyDescription,
+      roomType,
+      squareFootage: squareFootageRaw,
+      notes,
       photos: photoUrls,
       status: 'draft',
+      total,
+      items,
+      validUntil,
       createdAt: new Date().toISOString(),
-      total: 0, // Will be calculated by AI
+      updatedAt: new Date().toISOString(),
     };
 
-    // Save estimate to database (in a real app, you'd save to a database)
-    // For now, we'll just return the estimate ID
-    
-    return NextResponse.json({ estimateId: estimate.id });
+    // Persist to in-memory store so detail/email/status endpoints can read it.
+    store[estimateId] = estimate;
+
+    return NextResponse.json({ estimateId, estimate });
   } catch (error) {
     console.error('Error generating estimate:', error);
     return NextResponse.json(
