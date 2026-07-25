@@ -10,6 +10,7 @@ export interface User {
   role: 'admin' | 'customer';
   company?: string;
   phone?: string;
+  address?: string;
   createdAt: string;
 }
 
