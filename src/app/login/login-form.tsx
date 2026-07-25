@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { signIn, getCsrfToken } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -10,13 +10,8 @@ export default function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const [csrfToken, setCsrfToken] = useState('');
-
-  useEffect(() => {
-    getCsrfToken().then(token => {
-      if (token) setCsrfToken(token);
-    });
-  }, []);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,9 +19,11 @@ export default function LoginForm() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    const formDataObj = Object.fromEntries(formData.entries());
+
     const result = await signIn('credentials', {
-      email,
-      password,
+      email: formDataObj.email as string,
+      password: formDataObj.password as string,
       redirect: false,
       callbackUrl: '/',
     });
@@ -49,7 +46,6 @@ export default function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <input type="hidden" name="csrfToken" value={csrfToken} />
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email
