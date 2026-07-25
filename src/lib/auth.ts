@@ -1,5 +1,20 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { readFileSync, existsSync } from "fs";
+
+function readStoredCredentials() {
+  try {
+    const path = "/home/django/tech-paint/settings.json";
+    if (existsSync(path)) {
+      const data = JSON.parse(readFileSync(path, "utf-8"));
+      return {
+        email: data.adminEmail || "admin@techpaint.com",
+        password: data.adminPassword || "admin123",
+      };
+    }
+  } catch {}
+  return { email: "admin@techpaint.com", password: "admin123" };
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,10 +29,12 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (credentials.email === "admin@techpaint.com" && credentials.password === "admin123") {
+        const stored = readStoredCredentials();
+
+        if (credentials.email === stored.email && credentials.password === stored.password) {
           return {
             id: "1",
-            email: "admin@techpaint.com",
+            email: stored.email,
             name: "Admin",
             role: "admin",
           };
@@ -50,11 +67,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // Allow relative URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allow same origin URLs
       if (new URL(url).origin === baseUrl) return url;
-      // Default to baseUrl
       return baseUrl;
     },
   },

@@ -1,17 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 
-// Vision-capable models: free ones first, then cheap paid ones as upgrade
 const MODELS = [
-  // FREE vision models
   { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B (Free, Vision)', provider: 'Google', free: true, vision: true },
   { id: 'google/gemma-4-26b-a4b-it:free', name: 'Gemma 4 26B (Free, Vision)', provider: 'Google', free: true, vision: true },
   { id: 'nvidia/nemotron-nano-12b-v2-vl:free', name: 'Nemotron Nano 12B VL (Free, Vision)', provider: 'Nvidia', free: true, vision: true },
   { id: 'meta-llama/llama-3.1-8b-instruct:free', name: 'Llama 3.1 8B (Free, Text Only)', provider: 'Meta', free: true, vision: false },
   { id: 'deepseek/deepseek-r1-0528:free', name: 'DeepSeek R1 (Free, Text Only)', provider: 'DeepSeek', free: true, vision: false },
-  // CHEAP vision models (upgrades)
   { id: 'google/gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite ($0.10/M, Vision)', provider: 'Google', free: false, vision: true },
   { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano ($0.10/M, Vision)', provider: 'OpenAI', free: false, vision: true },
   { id: 'meta-llama/llama-4-scout', name: 'Llama 4 Scout ($0.10/M, Vision)', provider: 'Meta', free: false, vision: true },
@@ -20,6 +17,8 @@ const MODELS = [
 ];
 
 interface Settings {
+  adminEmail: string;
+  adminPassword: string;
   emailEnabled: boolean;
   smtpHost: string;
   smtpPort: number;
@@ -36,7 +35,10 @@ interface Settings {
 }
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const [settings, setSettings] = useState<Settings>({
+    adminEmail: 'admin@techpaint.com',
+    adminPassword: '',
     emailEnabled: false,
     smtpHost: '',
     smtpPort: 587,
@@ -56,8 +58,9 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [testingEmail, setTestingEmail] = useState(false);
   const [testingLLM, setTestingLLM] = useState(false);
-  const [llmTestResult, setLlmTestResult] = useState<string>('');
-  const router = useRouter();
+  const [llmTestResult, setLlmTestResult] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => { loadSettings(); }, []);
 
@@ -75,7 +78,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setSettings(prev => ({
       ...prev,
@@ -85,16 +88,45 @@ export default function SettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setMessage(null);
+
+    // Validate password change
+    if (newPassword || confirmPassword) {
+      if (newPassword.length < 5) {
+        setMessage({ type: 'error', text: 'Password must be at least 5 characters.' });
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setMessage({ type: 'error', text: 'Passwords do not match.' });
+        return;
+      }
+    }
+
+    setSaving(true);
     try {
+      const payload: any = { ...settings };
+      if (newPassword) {
+        payload.adminPassword = newPassword;
+      } else {
+        delete payload.adminPassword; // Don't overwrite with empty
+      }
+
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(payload),
       });
+
       if (res.ok) {
-        setMessage({ type: 'success', text: 'Settings saved successfully!' });
+        if (newPassword) {
+          setNewPassword('');
+          setConfirmPassword('');
+          setMessage({ type: 'success', text: 'Settings saved! You\'ll need to sign in again with your new password.' });
+          // Force re-login after password change
+          setTimeout(() => signOut({ callbackUrl: '/login' }), 2000);
+        } else {
+          setMessage({ type: 'success', text: 'Settings saved successfully!' });
+        }
       } else {
         const error = await res.json();
         setMessage({ type: 'error', text: error.error || 'Failed to save settings' });
@@ -114,11 +146,7 @@ export default function SettingsPage() {
     setTestingEmail(true);
     setMessage(null);
     try {
-      const res = await fetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'test' }),
-      });
+      const res = await fetch('/api/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'test' }) });
       if (res.ok) {
         setMessage({ type: 'success', text: 'Test email sent successfully!' });
       } else {
@@ -141,151 +169,97 @@ export default function SettingsPage() {
     setMessage(null);
     setLlmTestResult('');
     try {
-      const res = await fetch('/api/llm/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
+      const res = await fetch('/api/llm/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
       const data = await res.json();
       if (res.ok) {
-        setMessage({ type: 'success', text: 'LLM connection successful!' });
+        setMessage({ type: 'success', text: 'AI connection successful!' });
         setLlmTestResult(data.response || '');
       } else {
-        setMessage({ type: 'error', text: data.error || 'LLM test failed' });
+        setMessage({ type: 'error', text: data.error || 'AI test failed' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'LLM test failed — check your API key' });
+      setMessage({ type: 'error', text: 'AI test failed — check your API key' });
     } finally {
       setTestingLLM(false);
     }
   };
 
   if (loading) {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-blue-600 text-lg">Loading settings…</div>
-      </main>
-    );
+    return <main className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-blue-600 text-lg">Loading…</div></main>;
   }
 
   const selectedModel = MODELS.find(m => m.id === settings.llmModel);
 
   return (
     <main className="min-h-screen bg-gray-50 py-10 px-4">
-      <form onSubmit={handleSave} id="settings-form">
+      <form onSubmit={handleSave}>
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-            <p className="text-gray-600">Configure your TechPaint settings</p>
+            <p className="text-gray-600">Configure your TechPaint account and AI</p>
           </div>
 
           {message && (
-            <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
               {message.text}
             </div>
           )}
 
-          {/* Authentication */}
+          {/* LOGIN CREDENTIALS */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-              </svg>
-              <span>Authentication</span>
+            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <span>🔐</span> Login Credentials
             </h2>
+            <p className="text-gray-500 text-sm mb-5">Change the email and password you use to sign in to TechPaint.</p>
+
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth URL</label>
-                <input type="url" name="nextAuthUrl" value={settings.nextAuthUrl} onChange={handleChange}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Login Email</label>
+                <input type="email" name="adminEmail" value={settings.adminEmail} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://your-domain.com" />
+                  placeholder="admin@techpaint.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth Secret</label>
-                <input type="password" name="nextAuthSecret" value={settings.nextAuthSecret} onChange={handleChange}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                <input type="password" value="••••••••" disabled
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-400 cursor-not-allowed" />
+              </div>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New Password <span className="text-gray-400 font-normal">(leave blank to keep current)</span></label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Generate with: openssl rand -base64 32" />
+                  placeholder="••••••••" minLength={5} />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="••••••••" minLength={5} />
+              </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <p className="text-sm text-blue-700">
+                <strong>Signed in as:</strong> {session?.user?.email || '—'} &nbsp;|&nbsp; 
+                <strong>Default:</strong> admin@techpaint.com / admin123
+              </p>
             </div>
           </section>
 
-          {/* Email Settings */}
+          {/* AI ESTIMATE GENERATION */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span>Email Settings</span>
+            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <span>🤖</span> AI Estimate Generation
             </h2>
-            <div className="mb-4">
-              <label className="flex items-center gap-3">
-                <input type="checkbox" checked={settings.emailEnabled}
-                  onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" />
-                <span className="font-medium text-gray-700">Enable email notifications</span>
-              </label>
-            </div>
-            {settings.emailEnabled && (
-              <div className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
-                    <input type="text" name="smtpHost" value={settings.smtpHost} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="smtp.gmail.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
-                    <input type="number" name="smtpPort" value={settings.smtpPort}
-                      onChange={(e) => setSettings({ ...settings, smtpPort: parseInt(e.target.value) || 587 })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Username</label>
-                    <input type="text" name="smtpUser" value={settings.smtpUser} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="your-email@gmail.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
-                    <input type="password" name="smtpPass" value={settings.smtpPass} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="App password or SMTP password" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">From Email Address</label>
-                  <input type="email" name="smtpFrom" value={settings.smtpFrom} onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="noreply@yourdomain.com" />
-                </div>
-                <div className="flex gap-4 pt-4">
-                  <button type="button" onClick={handleTestEmail} disabled={testingEmail}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    {testingEmail ? 'Testing…' : 'Send Test Email'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </section>
+            <p className="text-gray-500 text-sm mb-5">The AI analyzes photos of rooms/walls and generates detailed painting estimates with pricing.</p>
 
-          {/* AI Estimate Generation */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l.707.707M21 12h-1M4 12H4 12H3m15.364 6.364l-.707.707M21 12h1m-9 9a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>AI Estimate Generation</span>
-            </h2>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-5">
               <p className="text-sm text-purple-800">
-                <strong>Powered by OpenRouter</strong> — The AI analyzes your project photos and description to generate accurate painting estimates.
+                <strong>Powered by OpenRouter</strong> — Free vision models analyze your project photos and estimate costs.
                 Get your free API key at{' '}
                 <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">openrouter.ai/keys</a>
-                {' '}— no credit card required for free models.
+                {' '}— no credit card required.
               </p>
             </div>
 
@@ -312,30 +286,20 @@ export default function SettingsPage() {
               <select name="llmModel" value={settings.llmModel} onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                 <optgroup label="🟢 Free — Photo Analysis">
-                  {MODELS.filter(m => m.free && m.vision).map(m => (
-                    <option key={m.id} value={m.id}>{m.provider} — {m.name}</option>
-                  ))}
+                  {MODELS.filter(m => m.free && m.vision).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </optgroup>
                 <optgroup label="🟢 Free — Text Only (no photo analysis)">
-                  {MODELS.filter(m => m.free && !m.vision).map(m => (
-                    <option key={m.id} value={m.id}>{m.provider} — {m.name}</option>
-                  ))}
+                  {MODELS.filter(m => m.free && !m.vision).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </optgroup>
-                <optgroup label="💰 Cheap Paid — Photo Analysis">
-                  {MODELS.filter(m => !m.free && m.vision).map(m => (
-                    <option key={m.id} value={m.id}>{m.provider} — {m.name}</option>
-                  ))}
+                <optgroup label="💰 Cheap Paid — Photo Analysis ($0.10-0.15/M tokens)">
+                  {MODELS.filter(m => !m.free && m.vision).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </optgroup>
               </select>
               {selectedModel && !selectedModel.vision && (
-                <p className="text-xs text-amber-600 mt-1 font-medium">
-                  ⚠️ This model cannot analyze photos. Choose a Vision model above for image-based estimates.
-                </p>
+                <p className="text-xs text-amber-600 mt-1 font-medium">⚠️ This model cannot analyze photos. Choose a Vision model for image-based estimates.</p>
               )}
-              {selectedModel && selectedModel.free && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✅ Free model — can analyze project photos for estimate generation.
-                </p>
+              {selectedModel && selectedModel.vision && selectedModel.free && (
+                <p className="text-xs text-green-600 mt-1">✅ Free vision model — can analyze room/wall photos.</p>
               )}
             </div>
 
@@ -343,23 +307,97 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
                 <input type="number" name="llmTemperature" value={settings.llmTemperature}
-                  onChange={(e) => setSettings({ ...settings, llmTemperature: parseFloat(e.target.value) || 0.7 })}
+                  onChange={e => setSettings(prev => ({ ...prev, llmTemperature: parseFloat(e.target.value) || 0.7 }))}
                   min="0" max="2" step="0.1"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
                 <input type="number" name="llmMaxTokens" value={settings.llmMaxTokens}
-                  onChange={(e) => setSettings({ ...settings, llmMaxTokens: parseInt(e.target.value) || 4000 })}
+                  onChange={e => setSettings(prev => ({ ...prev, llmMaxTokens: parseInt(e.target.value) || 4000 }))}
                   min="100" max="32000" step="100"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
               </div>
             </div>
           </section>
 
-          <div className="mt-8 flex justify-end">
+          {/* EMAIL SETTINGS */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <span>📧</span> Email Settings
+            </h2>
+            <p className="text-gray-500 text-sm mb-5">Configure SMTP to send estimate emails to customers.</p>
+
+            <label className="flex items-center gap-3 mb-4">
+              <input type="checkbox" checked={settings.emailEnabled}
+                onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
+                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" />
+              <span className="font-medium text-gray-700">Enable email</span>
+            </label>
+
+            {settings.emailEnabled && (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
+                    <input type="text" name="smtpHost" value={settings.smtpHost} onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="smtp.gmail.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
+                    <input type="number" name="smtpPort" value={settings.smtpPort}
+                      onChange={(e) => setSettings({ ...settings, smtpPort: parseInt(e.target.value) || 587 })}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Username</label>
+                    <input type="text" name="smtpUser" value={settings.smtpUser} onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="you@gmail.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
+                    <input type="password" name="smtpPass" value={settings.smtpPass} onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="App password" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">From Address</label>
+                  <input type="email" name="smtpFrom" value={settings.smtpFrom} onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="noreply@yourdomain.com" />
+                </div>
+                <button type="button" onClick={handleTestEmail} disabled={testingEmail}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                  {testingEmail ? 'Testing…' : 'Send Test Email'}
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* NEXTAUTH SETTINGS */}
+          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+              <span>🔑</span> NextAuth Config
+            </h2>
+            <p className="text-gray-500 text-sm mb-5">NextAuth session configuration. Only change if you know what you&apos;re doing.</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth URL</label>
+                <input type="url" name="nextAuthUrl" value={settings.nextAuthUrl} onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://your-domain.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth Secret</label>
+                <input type="password" name="nextAuthSecret" value={settings.nextAuthSecret} onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="openssl rand -base64 32" />
+              </div>
+            </div>
+          </section>
+
+          <div className="sticky bottom-4 flex justify-end">
             <button type="submit" disabled={saving}
-              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
               {saving ? 'Saving…' : 'Save Settings'}
             </button>
           </div>
