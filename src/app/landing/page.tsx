@@ -16,7 +16,7 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-gray-600 hover:text-blue-600 font-medium">Sign In</Link>
-            <Link href="/login" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">Get Started</Link>
+            <Link href="/signup" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">Get Started</Link>
           </div>
         </div>
       </nav>
@@ -46,9 +46,9 @@ export default function LandingPage() {
                 detailed line-item estimates — so you can bid faster and win more jobs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/login"
+                <Link href="/signup"
                   className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/25 text-center">
-                  Start Estimating →
+                  Get a Free Estimate →
                 </Link>
                 <a href="#features"
                   className="px-8 py-4 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-blue-300 hover:text-blue-600 transition-all text-center">
@@ -133,9 +133,9 @@ export default function LandingPage() {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Join painting contractors who are generating professional estimates in minutes, not hours.
           </p>
-          <Link href="/login"
+          <Link href="/signup"
             className="inline-block px-10 py-4 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition shadow-lg text-lg">
-            Get Started Free →
+            Get Your Free Estimate →
           </Link>
         </div>
       </section>
