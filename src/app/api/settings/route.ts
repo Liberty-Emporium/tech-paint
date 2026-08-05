@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '@/lib/require-auth';
+import { SETTINGS_FILE } from '@/lib/config';
 
-const SETTINGS_FILE = '/home/django/tech-paint/settings.json';
+const fs = require('fs');
+const path = require('path');
 
 interface Settings {
   emailEnabled: boolean;
@@ -11,9 +14,14 @@ interface Settings {
   smtpFrom: string;
   nextAuthUrl: string;
   nextAuthSecret: string;
+  llmProvider: string;
+  llmModel: string;
+  llmApiKey: string;
+  llmTemperature: number;
+  llmMaxTokens: number;
 }
 
-const defaultSettings = {
+const defaultSettings: Settings = {
   emailEnabled: false,
   smtpHost: '',
   smtpPort: 587,
@@ -29,11 +37,10 @@ const defaultSettings = {
   llmMaxTokens: 4000,
 };
 
-async function readSettings(): Promise<typeof defaultSettings> {
+function readSettings(): Settings {
   try {
-    const fs = require('fs');
-    if (require('fs').existsSync(SETTINGS_FILE)) {
-      const data = require('fs').readFileSync(SETTINGS_FILE, 'utf-8');
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
       return { ...defaultSettings, ...JSON.parse(data) };
     }
   } catch {
@@ -42,29 +49,31 @@ async function readSettings(): Promise<typeof defaultSettings> {
   return defaultSettings;
 }
 
-async function writeSettings(settings: typeof defaultSettings): Promise<void> {
-  const fs = require('fs');
-  const dir = require('path').dirname(SETTINGS_FILE);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+function writeSettings(settings: Settings): void {
+  path.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
 }
 
+// GET /api/settings — owner only; never exposes the secret/API key.
 export async function GET() {
-  const settings = await readSettings();
-  // Don't expose password in GET
-  const { smtpPass, nextAuthSecret, llmApiKey, ...safeSettings } = await readSettings();
-  return Response.json(safeSettings);
+  const { user, error } = await requirePermission('settings');
+  if (error) return error;
+  const settings = readSettings();
+  const { smtpPass, nextAuthSecret, llmApiKey, ...safeSettings } = settings;
+  return NextResponse.json(safeSettings);
 }
 
-export async function POST(request: Request) {
+// POST /api/settings — owner only.
+export async function POST(request: NextRequest) {
+  const { error } = await requirePermission('settings');
+  if (error) return error;
   try {
-    const body = await request.json();
-    await writeSettings(body);
+    const body = await request.json() as Partial<Settings>;
+    const current = readSettings();
+    writeSettings({ ...current, ...body });
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Failed to save settings:', error);
+  } catch (err) {
+    console.error('Failed to save settings:', err);
     return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
   }
 }

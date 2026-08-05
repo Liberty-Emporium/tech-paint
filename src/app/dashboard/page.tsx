@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Estimate {
   id: string;
@@ -20,6 +22,8 @@ interface Stats {
 }
 
 export default function DashboardPage(): JSX.Element {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [stats, setStats] = useState<Stats>({
     totalEstimates: 0,
     totalRevenue: 0,
@@ -30,8 +34,12 @@ export default function DashboardPage(): JSX.Element {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === 'loading') return;
+    const role = (session?.user as any)?.role;
+    if (status === 'unauthenticated') { router.replace('/login'); return; }
+    if (role === 'customer') { router.replace('/portal'); return; }
     loadDashboardData();
-  }, []);
+  }, [status, session]);
 
   const loadDashboardData = async (): Promise<void> => {
     try {

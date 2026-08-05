@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findById, update } from '@/lib/db';
+import { requireAuth } from '@/lib/require-auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   const est = await findById('estimates', params.id);
   if (!est) {
     return NextResponse.json({ error: 'Estimate not found' }, { status: 404 });
@@ -16,6 +19,8 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   const body = await request.json().catch(() => ({}));
   const est = await findById('estimates', params.id);
   if (!est) {

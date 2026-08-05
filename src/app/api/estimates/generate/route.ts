@@ -4,11 +4,12 @@ import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { readFileSync, existsSync } from 'fs';
 import { upsert } from '@/lib/db';
+import { requireAuth } from '@/lib/require-auth';
+import { SETTINGS_FILE } from '@/lib/config';
 
 function readSettings() {
   try {
-    const path = '/home/django/tech-paint/settings.json';
-    if (existsSync(path)) return JSON.parse(readFileSync(path, 'utf-8'));
+    if (existsSync(SETTINGS_FILE)) return JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'));
   } catch {}
   return {};
 }
@@ -136,6 +137,8 @@ function ruleBasedEstimate(roomType: string, squareFootageRaw: string) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
     const ct = request.headers.get('content-type') || '';
     let customerName: string, customerEmail: string, customerPhone: string,
         customerAddress: string, propertyDescription: string, roomType: string,

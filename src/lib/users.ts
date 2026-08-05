@@ -1,13 +1,15 @@
-// In-memory user store for Coltrane Tech Paint.
-// Users persist across hot-reloads via global.
+// Persistent user store for TechPaint.
+// Users are backed by a JSON file on disk so they survive restarts.
 import { readFileSync, existsSync } from 'fs';
+import { Role } from './permissions';
+import { USERS_FILE, SETTINGS_FILE } from './config';
 
 export interface User {
   id: string;
   email: string;
   password: string;
   name: string;
-  role: 'admin' | 'customer';
+  role: Role;
   company?: string;
   phone?: string;
   address?: string;
@@ -19,25 +21,22 @@ declare global {
   var __users: User[] | undefined;
 }
 
-const SETTINGS_PATH = '/home/django/tech-paint/settings.json';
-
 function loadUsersFromDisk(): User[] | null {
   try {
-    const path = '/home/django/tech-paint/data/users.json';
-    if (existsSync(path)) {
-      return JSON.parse(readFileSync(path, 'utf-8'));
+    if (existsSync(USERS_FILE)) {
+      return JSON.parse(readFileSync(USERS_FILE, 'utf-8'));
     }
   } catch {}
   return null;
 }
 
 function getDefaultUsers(): User[] {
-  // Try to read admin credentials from settings.json (what the user configured)
+  // Owner (Jesse) is the full-permission account; admin/Troy are owners too.
   let adminEmail = 'admin@coltranetechpaint.com';
   let adminPassword = 'admin123';
   try {
-    if (existsSync(SETTINGS_PATH)) {
-      const s = JSON.parse(readFileSync(SETTINGS_PATH, 'utf-8'));
+    if (existsSync(SETTINGS_FILE)) {
+      const s = JSON.parse(readFileSync(SETTINGS_FILE, 'utf-8'));
       if (s.adminEmail) adminEmail = s.adminEmail;
       if (s.adminPassword) adminPassword = s.adminPassword;
     }
@@ -48,8 +47,8 @@ function getDefaultUsers(): User[] {
       id: '1',
       email: adminEmail,
       password: adminPassword,
-      name: 'Admin',
-      role: 'admin',
+      name: 'Owner',
+      role: 'owner',
       createdAt: new Date().toISOString(),
     },
     {
@@ -57,7 +56,7 @@ function getDefaultUsers(): User[] {
       email: 'jesse@coltranetechpaint.com',
       password: '1234',
       name: 'Jesse Coltrane',
-      role: 'admin',
+      role: 'owner',
       createdAt: new Date().toISOString(),
     },
     {
@@ -65,7 +64,7 @@ function getDefaultUsers(): User[] {
       email: 'troy@coltranetechpaint.com',
       password: '4321',
       name: 'Troy Coltrane',
-      role: 'admin',
+      role: 'owner',
       createdAt: new Date().toISOString(),
     },
   ];
@@ -100,6 +99,7 @@ export function addUser(user: Omit<User, 'id' | 'createdAt'>): User {
   };
   users.push(newUser);
   global.__users = users;
+  saveUsersToDisk();
   return newUser;
 }
 
@@ -109,6 +109,7 @@ export function updateUser(id: string, updates: Partial<User>): User | null {
   if (idx === -1) return null;
   users[idx] = { ...users[idx], ...updates };
   global.__users = users;
+  saveUsersToDisk();
   return users[idx];
 }
 
@@ -118,14 +119,18 @@ export function deleteUser(id: string): boolean {
   if (idx === -1) return false;
   users.splice(idx, 1);
   global.__users = users;
+  saveUsersToDisk();
   return true;
 }
 
-// Persist to disk so users survive restarts
-export async function saveUsersToDisk(): Promise<void> {
-  const { writeFile, mkdir } = await import('fs/promises');
-  const { join } = await import('path');
-  const dir = join(process.cwd(), 'data');
-  await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, 'users.json'), JSON.stringify(initUsers(), null, 2));
+// Persist to disk so users survive restarts.
+export function saveUsersToDisk(): void {
+  try {
+    const { writeFileSync, mkdirSync } = require('fs');
+    const { dirname } = require('path');
+    mkdirSync(dirname(USERS_FILE), { recursive: true });
+    writeFileSync(USERS_FILE, JSON.stringify(initUsers(), null, 2));
+  } catch (e) {
+    console.error('Failed to save users to disk:', e);
+  }
 }

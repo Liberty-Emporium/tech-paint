@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findById, update, remove } from '@/lib/db';
+import { requirePermission } from '@/lib/require-auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { error } = await requirePermission('customers');
+  if (error) return error;
   const customer = await findById('customers', params.id);
   if (!customer) {
     return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
@@ -16,6 +19,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { error } = await requirePermission('customers');
+  if (error) return error;
   try {
     const body = await request.json();
     const existing = await findById('customers', params.id);
@@ -40,6 +45,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { error } = await requirePermission('customers');
+  if (error) return error;
   const removed = await remove('customers', params.id);
   if (!removed) {
     return NextResponse.json({ error: 'Customer not found' }, { status: 404 });

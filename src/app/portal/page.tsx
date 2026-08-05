@@ -30,7 +30,8 @@ export default function CustomerPortal() {
     }
     if (status === 'authenticated') {
       const role = (session?.user as any)?.role;
-      if (role === 'admin') {
+      if (role !== 'customer') {
+        // Staff (owner/secretary/employee) use the dashboard, not the customer portal.
         router.push('/dashboard');
         return;
       }

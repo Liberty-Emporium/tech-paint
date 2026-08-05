@@ -1,43 +1,49 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { hasPermission, Permission } from '@/lib/permissions';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role;
-  const isAdmin = role === 'admin';
 
-  const adminLinks = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Estimates', href: '/estimates' },
-    { name: 'Customers', href: '/customers' },
-    { name: 'Documents', href: '/documents' },
-    { name: 'Users', href: '/users' },
-    { name: 'Settings', href: '/settings' },
-  ];
+  const can = (perm: Permission) => hasPermission(role, perm);
 
-  const customerLinks = [
-    { name: 'My Estimates', href: '/portal' },
-  ];
+  // Owner gets the full admin set; secretary/employee see their scoped subsets.
+  const isStaff = role && role !== 'customer';
 
-  const links = isAdmin ? adminLinks : customerLinks;
+  const links = isStaff
+    ? [
+        { name: 'Dashboard', href: '/dashboard', show: true },
+        { name: 'Estimates', href: '/estimates', show: can('estimates') },
+        { name: 'Customers', href: '/customers', show: can('customers') },
+        { name: 'Documents', href: '/documents', show: can('documents') },
+        { name: 'Users', href: '/users', show: can('users') },
+        { name: 'Settings', href: '/settings', show: can('settings') },
+      ].filter(l => l.show)
+    : [
+        { name: 'My Estimates', href: '/portal', show: true },
+      ].filter(l => l.show);
 
   // Don't show nav on landing or login pages
   if (pathname === '/landing' || pathname === '/login' || pathname === '/') {
     return null;
   }
 
+  const homeHref = isStaff ? '/dashboard' : '/portal';
+  const roleLabel = role === 'owner' ? 'Owner' : role === 'secretary' ? 'Secretary' : role === 'employee' ? 'Employee' : 'Customer';
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href={isAdmin ? '/dashboard' : '/portal'} className="flex items-center gap-2">
+          <Link href={homeHref} className="flex items-center gap-2">
             <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-sm">CT</span>
             </div>
@@ -66,7 +72,8 @@ export default function Navigation() {
             {session?.user && (
               <span className="text-sm text-gray-500">
                 {session.user.name || session.user.email}
-                {!isAdmin && <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Customer</span>}
+                {!isStaff && <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Customer</span>}
+                {isStaff && <span className="ml-1 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{roleLabel}</span>}
               </span>
             )}
             <button
@@ -85,8 +92,7 @@ export default function Navigation() {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {mobileMenuOpen
                 ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              }
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />}
             </svg>
           </button>
         </div>

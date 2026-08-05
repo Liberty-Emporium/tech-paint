@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { all } from '@/lib/db';
+import { requireAuth } from '@/lib/require-auth';
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   const estimates = await all('estimates');
 
   if (estimates.length === 0) {

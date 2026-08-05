@@ -29,12 +29,11 @@ export default function LoginForm() {
     if (result?.error) {
       setError('Invalid email or password');
     } else {
-      // Redirect based on role — fetch session to check
+      // Redirect based on role — portal redirects staff to the dashboard.
       if (callbackUrl) {
         window.location.href = callbackUrl;
       } else {
-        // Default: go to dashboard (will redirect customer to portal client-side)
-        window.location.href = '/dashboard';
+        window.location.href = '/portal';
       }
     }
   };

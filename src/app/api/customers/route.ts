@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { all, insert } from '@/lib/db';
+import { requirePermission } from '@/lib/require-auth';
 
 interface Customer {
   id: string;
@@ -12,11 +13,15 @@ interface Customer {
 }
 
 export async function GET() {
+  const { error } = await requirePermission('customers');
+  if (error) return error;
   const customers = await all<Customer>('customers');
   return NextResponse.json(customers);
 }
 
 export async function POST(request: NextRequest) {
+  const { error } = await requirePermission('customers');
+  if (error) return error;
   try {
     const body = await request.json();
     if (!body.name || !body.email || !body.phone) {

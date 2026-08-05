@@ -3,6 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { all, insert } from '@/lib/db';
+import { requireAuth, requirePermission } from '@/lib/require-auth';
 
 interface Document {
   id: string;
@@ -19,6 +20,8 @@ interface Document {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   try {
     const documents = await all<Document>('documents');
     return NextResponse.json(documents);
@@ -29,6 +32,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const perm = await requirePermission('documents');
+  if (perm.error) return perm.error;
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;

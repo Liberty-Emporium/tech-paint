@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { all, remove } from '@/lib/db';
+import { requireAuth } from '@/lib/require-auth';
 
 const DEMO_ESTIMATES = [
   {
@@ -29,7 +30,18 @@ const DEMO_ESTIMATES = [
 ];
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
+
   const estimates = await all('estimates');
+  // Customers only see their own estimates; staff see everything.
+  const user = auth.user;
+  if (user.role === 'customer') {
+    const mine = estimates.filter((e: any) =>
+      (e.customerEmail || '').toLowerCase() === user.email.toLowerCase()
+    );
+    return NextResponse.json(mine);
+  }
   // On a fresh install the DB is empty; show sample data so the UI isn't blank.
   if (estimates.length === 0) {
     return NextResponse.json(DEMO_ESTIMATES);
@@ -38,6 +50,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

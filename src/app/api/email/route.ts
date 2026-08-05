@@ -2,85 +2,64 @@ import { NextRequest, NextResponse } from 'next/server';
 import { emailService } from '@/lib/email';
 import { emailTemplates } from '@/lib/email-templates';
 import { renderTemplate, renderEach } from '@/lib/template';
+import { requireAuth, requirePermission } from '@/lib/require-auth';
+import { SETTINGS_FILE } from '@/lib/config';
+
+const fs = require('fs');
+
+function readSettings(): any {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+    }
+  } catch {}
+  return {};
+}
+
+function writeSettings(settings: any): void {
+  const path = require('path');
+  path.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+}
 
 export async function POST(request: NextRequest) {
+  // Any authenticated user may send templates, but configuring SMTP / testing
+  // touches the settings file, so that's owner-only.
+  const { error } = await requireAuth();
+  if (error) return error;
+
   try {
     const body = await request.json();
     const { action, ...data } = body;
 
     switch (action) {
       case 'configure': {
-        const { smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, emailEnabled } = data;
+        const cfg = await requirePermission('settings');
+        if (cfg.error) return cfg.error;
 
-        const settings = {
-          emailEnabled: emailEnabled ?? true,
-          smtpHost,
-          smtpPort: smtpPort || 587,
-          smtpUser,
-          smtpPass,
-          smtpFrom: smtpFrom || data.smtpUser,
-        };
-
-        // Save to settings file
-        const fs = require('fs');
-        const settingsPath = '/home/django/tech-paint/settings.json';
-        let existingSettings = {};
-        try {
-          if (require('fs').existsSync('/home/django/tech-paint/settings.json')) {
-            const data = require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8');
-            Object.assign({}, JSON.parse(data));
-          }
-        } catch {}
-
-        const newSettings = {
-          ...{ emailEnabled: false, smtpHost: '', smtpPort: 587, smtpUser: '', smtpPass: '', smtpFrom: '', nextAuthUrl: '', nextAuthSecret: '' },
-          ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {},
-          ...data
-        };
-
-        require('fs').writeFileSync('/home/django/tech-paint/settings.json', JSON.stringify({
-          ...require('fs').existsSync('/home/django/tech-paint/settings.json') ? JSON.parse(require('fs').readFileSync('/home/django/tech-paint/settings.json', 'utf-8')) : {},
+        const existing = readSettings();
+        writeSettings({
+          ...existing,
           emailEnabled: data.emailEnabled ?? true,
           smtpHost: data.smtpHost,
           smtpPort: data.smtpPort || 587,
           smtpUser: data.smtpUser,
           smtpPass: data.smtpPass,
-          smtpFrom: data.smtpFrom || data.smtpUser
-        }, null, 2));
-
+          smtpFrom: data.smtpFrom || data.smtpUser,
+        });
         return NextResponse.json({ success: true });
       }
 
       case 'test': {
-        const fs = require('fs');
-        if (!fs.existsSync('/home/django/tech-paint/settings.json')) {
-          return NextResponse.json({ success: false, error: 'Email not configured' });
-        }
-        const settings = JSON.parse(fs.readFileSync('/home/django/tech-paint/settings.json', 'utf-8'));
+        const cfg = await requirePermission('settings');
+        if (cfg.error) return cfg.error;
 
+        const settings = readSettings();
         if (!settings.emailEnabled || !settings.smtpHost || !settings.smtpUser || !settings.smtpPass) {
           return NextResponse.json({ success: false, error: 'Email not configured' });
         }
-
-        const nodemailer = require('nodemailer');
-        const transporter = require('nodemailer').createTransport({
-          host: settings.smtpHost,
-          port: settings.smtpPort || 587,
-          secure: settings.smtpPort === 465,
-          auth: {
-            user: settings.smtpUser,
-            pass: settings.smtpPass,
-          },
-        });
-
         try {
-          await require('nodemailer').createTransport({
-            host: settings.smtpHost,
-            port: settings.smtpPort || 587,
-            secure: settings.smtpPort === 465,
-            auth: { user: settings.smtpUser, pass: settings.smtpPass },
-          }).verify();
-
+          await emailService.verifyConnection();
           return NextResponse.json({ success: true, message: 'SMTP connection verified successfully' });
         } catch (error) {
           return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Connection failed' });
@@ -88,58 +67,33 @@ export async function POST(request: NextRequest) {
       }
 
       case 'send_test': {
-        const { to } = await request.json();
+        const cfg = await requirePermission('settings');
+        if (cfg.error) return cfg.error;
 
-        const fs = require('fs');
-        if (!fs.existsSync('/home/django/tech-paint/settings.json')) {
-          return NextResponse.json({ success: false, error: 'Email not configured' });
-        }
-
-        const settings = JSON.parse(fs.readFileSync('/home/django/tech-paint/settings.json', 'utf-8'));
-
+        const settings = readSettings();
         if (!settings.emailEnabled || !settings.smtpHost || !settings.smtpUser || !settings.smtpPass) {
           return NextResponse.json({ success: false, error: 'Email not configured' });
         }
-
-        const nodemailer = require('nodemailer');
-        const transporter = require('nodemailer').createTransport({
-          host: settings.smtpHost,
-          port: settings.smtpPort || 587,
-          secure: settings.smtpPort === 465,
-          auth: {
-            user: settings.smtpUser,
-            pass: settings.smtpPass,
-          },
-        });
-
         try {
-          const info = await require('nodemailer').createTransport({
-            host: settings.smtpHost,
-            port: settings.smtpPort || 587,
-            secure: settings.smtpPort === 465,
-            auth: { user: settings.smtpUser, pass: settings.smtpPass },
-          }).sendMail({
-            from: `"TechPaint" <${settings.smtpFrom || settings.smtpUser}>`,
+          const result = await emailService.sendEmail({
             to: data.to || settings.smtpUser,
             subject: 'TechPaint - Test Email',
             html: '<h1>Test Email</h1><p>This is a test email from TechPaint.</p>',
             text: 'This is a test email from TechPaint.',
           });
-
-          return NextResponse.json({ success: true, messageId: info.messageId });
+          if (!result.success) return NextResponse.json({ success: false, error: result.error });
+          return NextResponse.json({ success: true, messageId: result.messageId });
         } catch (error) {
           return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Failed to send test email' });
         }
       }
 
       case 'send_estimate': {
-        // Send a real estimate email using the estimate_sent template.
         const template = emailTemplates.estimate_sent;
         if (!template) {
           return NextResponse.json({ success: false, error: 'Email template not found' }, { status: 404 });
         }
 
-        // Estimate data comes either as a full object or we look up via estimateId.
         const estimate = data.estimate || data;
         const recipient = estimate.customerEmail || data.to;
         if (!recipient) {
