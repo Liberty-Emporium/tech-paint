@@ -1,20 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { all } from '@/lib/db';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __estimates: Record<string, any> | undefined;
-}
-const store: Record<string, any> = global.__estimates || (global.__estimates = {});
-
-export async function GET(request: NextRequest) {
-  const estimates = Object.values(store);
+export async function GET() {
+  const estimates = await all('estimates');
 
   if (estimates.length === 0) {
     return NextResponse.json({
-      totalEstimates: 3,
-      totalRevenue: 10187,
-      winRate: 33,
-      avgTurnaround: '2.4d',
+      totalEstimates: 0,
+      totalRevenue: 0,
+      winRate: 0,
+      avgTurnaround: '—',
     });
   }
 

@@ -3,12 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { readFileSync, existsSync } from 'fs';
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __estimates: Record<string, any> | undefined;
-}
-const store: Record<string, any> = global.__estimates || (global.__estimates = {});
+import { upsert } from '@/lib/db';
 
 function readSettings() {
   try {
@@ -234,7 +229,7 @@ export async function POST(request: NextRequest) {
       generatedBy: settings.llmApiKey ? (photoDataUrls.length > 0 ? 'ai-vision' : 'ai-text') : 'rule-based',
     };
 
-    store[estimateId] = estimate;
+    await upsert('estimates', estimate);
     return NextResponse.json({ estimateId, estimate });
   } catch (error) {
     console.error('Error generating estimate:', error);
