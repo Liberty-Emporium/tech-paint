@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface Customer {
   id: string;
@@ -12,288 +11,213 @@ interface Customer {
   company: string;
 }
 
+const emptyForm = { name: '', email: '', phone: '', address: '', company: '' };
+
 export default function CustomersPage(): JSX.Element {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    company: '',
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
 
-  useEffect(() => {
-    loadCustomers();
-  }, []);
+  useEffect(() => { loadCustomers(); }, []);
 
   const loadCustomers = async (): Promise<void> => {
     try {
       const res = await fetch('/api/customers');
-      if (res.ok) {
-        const data = await res.json();
-        setCustomers(data);
-      }
+      if (res.ok) setCustomers(await res.json());
     } catch (error) {
       console.error('Failed to load customers:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+    } finally { setLoading(false); }
+  };
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setSaving(true);
-
     try {
       const method = editingCustomer ? 'PUT' : 'POST';
       const url = editingCustomer ? `/api/customers/${editingCustomer.id}` : '/api/customers';
-
       const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
+        method, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (res.ok) {
         await loadCustomers();
-        setShowModal(false);
-        setEditingCustomer(null);
-        setFormData({ name: '', email: '', phone: '', address: '', company: '' });
+        setShowModal(false); setEditingCustomer(null); setFormData(emptyForm);
       } else {
         const error = await res.json();
         alert(error.error || 'Failed to save customer');
       }
     } catch (error) {
       alert('Failed to save customer');
-    } finally {
-      setSaving(false);
-    }
-  }
+    } finally { setSaving(false); }
+  };
 
   const handleDelete = async (id: string): Promise<void> => {
     if (!confirm('Are you sure you want to delete this customer?')) return;
-
     try {
       const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        await loadCustomers();
-      } else {
-        alert('Failed to delete customer');
-      }
-    } catch (error) {
-      alert('Failed to delete customer');
-    }
-  }
+      if (res.ok) await loadCustomers();
+      else alert('Failed to delete customer');
+    } catch (error) { alert('Failed to delete customer'); }
+  };
 
   const openCreateModal = (): void => {
-    setEditingCustomer(null);
-    setFormData({ name: '', email: '', phone: '', address: '', company: '' });
-    setShowModal(true);
-  }
+    setEditingCustomer(null); setFormData(emptyForm); setShowModal(true);
+  };
 
-  const openEditModal = (customer: any): void => {
+  const openEditModal = (customer: Customer): void => {
     setEditingCustomer(customer);
-    setFormData({
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address,
-      company: customer.company,
-    });
+    setFormData({ name: customer.name, email: customer.email, phone: customer.phone, address: customer.address, company: customer.company });
     setShowModal(true);
-  }
+  };
 
-  const filteredCustomers = customers.filter((c) =>
+  const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase()) ||
     c.company.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 animate-fade-up">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Customers</h1>
-            <p className="text-gray-600">Manage your customers and contacts</p>
+            <span className="section-eyebrow">Directory</span>
+            <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">Customers</h1>
+            <p className="mt-1.5 text-ink-600">Manage your customers and contacts</p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            + Add Customer
+          <button onClick={openCreateModal} className="btn btn-primary btn-md">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Customer
           </button>
         </div>
 
-        <div className="mb-6">
+        {/* Search */}
+        <div className="relative mb-6 max-w-md">
+          <svg className="w-4 h-4 text-ink-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
-            type="text"
-            placeholder="Search customers..."
-            value={search}
+            type="text" placeholder="Search customers…" value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="input !pl-10"
           />
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Loading customers...</div>
+          <div className="flex items-center justify-center py-20 text-ink-500">
+            <div className="w-8 h-8 border-[3px] border-brand-100 border-t-brand-600 rounded-full animate-spin" />
+          </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredCustomers.length === 0 ? (
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table-shell">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                      {search ? 'No customers found matching your search' : 'No customers yet. Click "Add Customer" to get started.'}
-                    </td>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th className="!text-right">Actions</th>
                   </tr>
-                ) : (
-                  filteredCustomers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{customer.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{customer.company}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{customer.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">{customer.phone}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              const customerToEdit = customers.find(c => c.id === customer.id);
-                              if (customerToEdit) openEditModal(customerToEdit);
-                            }}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(customer.id)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="!py-14 text-center text-ink-500">
+                        {search ? 'No customers found matching your search.' : 'No customers yet. Click "Add Customer" to get started.'}
                       </td>
                     </tr>
-                  )))}
-              </tbody>
-            </table>
+                  ) : (
+                    filtered.map((customer) => (
+                      <tr key={customer.id}>
+                        <td className="font-semibold text-ink-900">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold">
+                              {customer.name.charAt(0).toUpperCase()}
+                            </div>
+                            {customer.name}
+                          </div>
+                        </td>
+                        <td>{customer.company || '—'}</td>
+                        <td>{customer.email}</td>
+                        <td>{customer.phone || '—'}</td>
+                        <td className="!text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button onClick={() => openEditModal(customer)} className="btn btn-ghost btn-sm">Edit</button>
+                            <button onClick={() => handleDelete(customer.id)} className="btn btn-sm text-rose-600 bg-rose-50 hover:bg-rose-100">Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-950/60 backdrop-blur-sm">
+            <div className="card max-w-md w-full max-h-[90vh] overflow-y-auto animate-fade-up">
+              <div className="p-7">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">
+                  <h2 className="font-display text-xl font-bold text-ink-900">
                     {editingCustomer ? 'Edit Customer' : 'Add Customer'}
                   </h2>
-                  <button
-                    onClick={() => { setShowModal(false); setEditingCustomer(null); }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <button onClick={() => { setShowModal(false); setEditingCustomer(null); }}
+                    className="text-ink-400 hover:text-ink-700 rounded-lg p-1.5 hover:bg-ink-50">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
+                    <label className="label">Name *</label>
+                    <input type="text" name="name" value={formData.name} required
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Jane Smith"
-                    />
+                      className="input" placeholder="Jane Smith" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      value={formData.email}
+                    <label className="label">Email</label>
+                    <input id="email" name="email" type="email" required value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="admin@techpaint.com"
-                    />
+                      className="input" placeholder="admin@coltranetechpaint.com" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      value={formData.phone}
+                    <label className="label">Phone</label>
+                    <input id="phone" name="phone" type="tel" required value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="(555) 123-4567"
-                    />
+                      className="input" placeholder="(555) 123-4567" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-                    <input
-                      type="text"
-                      name="company"
-                      value={formData.company}
+                    <label className="label">Company</label>
+                    <input type="text" name="company" value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                      className="input" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
+                    <label className="label">Address</label>
+                    <textarea name="address" value={formData.address} rows={3}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                      className="input" />
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4">
-                    <button
-                      type="button"
+                    <button type="button"
                       onClick={() => { setShowModal(false); setEditingCustomer(null); }}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-900"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                      {saving ? 'Saving...' : 'Save'}
+                      className="btn btn-ghost btn-md">Cancel</button>
+                    <button type="submit" disabled={saving} className="btn btn-primary btn-md disabled:opacity-50">
+                      {saving ? 'Saving…' : 'Save'}
                     </button>
                   </div>
                 </form>

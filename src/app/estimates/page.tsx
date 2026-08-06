@@ -12,6 +12,10 @@ interface Estimate {
   createdAt: string;
 }
 
+const statusStyles: Record<string, string> = {
+  draft: 'badge-gray', sent: 'badge-blue', accepted: 'badge-green', declined: 'badge-red',
+};
+
 export default function EstimatesPage(): JSX.Element {
   const [estimates, setEstimates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,134 +24,112 @@ export default function EstimatesPage(): JSX.Element {
   const fetchEstimates = async (): Promise<void> => {
     try {
       const res = await fetch('/api/estimates');
-      if (res.ok) {
-        const data = await res.json();
-        setEstimates(data);
-      }
+      if (res.ok) setEstimates(await res.json());
     } catch (error) {
       console.error('Failed to load estimates:', error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchEstimates();
-  }, []);
+  useEffect(() => { fetchEstimates(); }, []);
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  }
+  const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }
+  const filtered = estimates.filter(
+    (e) => e.customerName.toLowerCase().includes(search.toLowerCase()) ||
+           e.customerEmail.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const getStatusBadge = (status: string): JSX.Element => {
-    const styles: Record<string, string> = {
-      draft: 'bg-gray-100 text-gray-700',
-      sent: 'bg-blue-100 text-blue-700',
-      accepted: 'bg-green-100 text-green-700',
-      declined: 'bg-red-100 text-red-700',
-    };
-    return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  }
+  const counts = {
+    total: estimates.length,
+    accepted: estimates.filter(e => e.status === 'accepted').length,
+    sent: estimates.filter(e => e.status === 'sent').length,
+    draft: estimates.filter(e => e.status === 'draft').length,
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 animate-fade-up">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Estimates</h1>
-            <p className="text-gray-600">View and manage all your estimates</p>
+            <span className="section-eyebrow">Proposals</span>
+            <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">Estimates</h1>
+            <p className="mt-1.5 text-ink-600">View and manage all your estimates</p>
           </div>
-          <Link
-            href="/estimates/new"
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            + Create Estimate
+          <Link href="/estimates/new" className="btn btn-primary btn-md">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Estimate
           </Link>
         </div>
 
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search estimates..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+        {/* Summary chips */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <div className="card px-5 py-3"><span className="font-display text-xl font-bold text-ink-900">{counts.total}</span> <span className="text-sm text-ink-500 ml-1.5">Total</span></div>
+          <div className="card px-5 py-3"><span className="font-display text-xl font-bold text-emerald-600">{counts.accepted}</span> <span className="text-sm text-ink-500 ml-1.5">Accepted</span></div>
+          <div className="card px-5 py-3"><span className="font-display text-xl font-bold text-brand-600">{counts.sent}</span> <span className="text-sm text-ink-500 ml-1.5">Sent</span></div>
+          <div className="card px-5 py-3"><span className="font-display text-xl font-bold text-ink-400">{counts.draft}</span> <span className="text-sm text-ink-500 ml-1.5">Draft</span></div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-6 max-w-md">
+          <svg className="w-4 h-4 text-ink-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" placeholder="Search estimates…" value={search}
+            onChange={(e) => setSearch(e.target.value)} className="input !pl-10" />
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-gray-500">Loading estimates...</div>
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-[3px] border-brand-100 border-t-brand-600 rounded-full animate-spin" />
+          </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {loading ? (
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="table-shell">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Loading estimates...</td>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th className="!text-right">Actions</th>
                   </tr>
-                ) : estimates.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                      No estimates yet. <Link href="/estimates/new" className="text-blue-600 hover:text-blue-700 font-medium">Create your first estimate</Link>
-                    </td>
-                  </tr>
-                ) : (
-                  estimates
-                    .filter(
-                      (e) =>
-                        e.customerName.toLowerCase().includes(search.toLowerCase()) ||
-                        e.customerEmail.toLowerCase().includes(search.toLowerCase())
-                    )
-                    .map((estimate) => (
-                      <tr key={estimate.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">{estimate.customerName}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatCurrency(estimate.total)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            estimate.status === 'draft'
-                              ? 'bg-gray-100 text-gray-700'
-                              : estimate.status === 'sent'
-                              ? 'bg-blue-100 text-blue-700'
-                              : estimate.status === 'accepted'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="!py-14 text-center">
+                        <div className="text-4xl mb-3">📋</div>
+                        <p className="text-ink-500 mb-2">No estimates {search ? 'matching your search' : 'yet'}.</p>
+                        {!search && <Link href="/estimates/new" className="btn btn-primary btn-sm mt-2">Create your first estimate</Link>}
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((estimate) => (
+                      <tr key={estimate.id}>
+                        <td className="font-semibold text-ink-900">{estimate.customerName}</td>
+                        <td className="font-medium">{formatCurrency(estimate.total)}</td>
+                        <td>
+                          <span className={statusStyles[estimate.status] || 'badge-gray'}>
                             {estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(estimate.createdAt)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link href={`/estimates/${estimate.id}`} className="text-blue-600 hover:text-blue-700 font-medium">
-                            View
+                        <td>{formatDate(estimate.createdAt)}</td>
+                        <td className="!text-right">
+                          <Link href={`/estimates/${estimate.id}`} className="btn btn-soft btn-sm">
+                            View →
                           </Link>
                         </td>
                       </tr>
-                    )))}
-              </tbody>
-            </table>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

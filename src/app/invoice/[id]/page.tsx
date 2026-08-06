@@ -86,52 +86,49 @@ export default function InvoicePage() {
         }
       `}} />
 
-      <div className="invoice-page min-h-screen bg-gray-100 print:bg-white">
+      <div className="invoice-page min-h-screen bg-ink-50 print:bg-white">
         {/* Top bar — hidden when printing */}
-        <div className="no-print bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-          <Link href="/portal" className="text-blue-600 hover:underline text-sm">← Back to portal</Link>
+        <div className="no-print bg-white border-b border-ink-100 px-4 py-3 flex items-center justify-between">
+          <Link href="/portal" className="text-brand-600 hover:text-brand-700 text-sm font-medium">← Back to portal</Link>
           <div className="flex gap-3">
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-            >
+            <button onClick={() => window.print()} className="btn btn-primary btn-sm !py-2.5">
               🖨️ Print / Save as PDF
             </button>
           </div>
         </div>
 
         {/* Invoice */}
-        <div className="max-w-4xl mx-auto bg-white my-8 print:my-0 print:shadow-none shadow-lg rounded-lg overflow-hidden">
+        <div className="max-w-4xl mx-auto bg-white my-8 print:my-0 print:shadow-none shadow-lg rounded-xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-700 to-blue-900 px-10 py-8 text-white">
+          <div className="px-10 py-8 text-white" style={{ backgroundImage: 'linear-gradient(120deg, #2949f5, #7c3aed)' }}>
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight">Coltrane Tech Paint</h1>
-                <p className="text-blue-200 mt-1">Professional Painting Estimates & Invoices</p>
+                <h1 className="font-display text-3xl font-bold tracking-tight">Coltrane Tech Paint</h1>
+                <p className="text-white/80 mt-1">Professional Painting Estimates & Invoices</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold">INVOICE</p>
-                <p className="text-blue-200 mt-1">{estimate.estimateNumber || estimate.id}</p>
+                <p className="font-display text-2xl font-bold">INVOICE</p>
+                <p className="text-white/80 mt-1">{estimate.estimateNumber || estimate.id}</p>
               </div>
             </div>
           </div>
 
           {/* Status badge */}
-          <div className="px-10 py-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+          <div className="px-10 py-4 bg-ink-50 border-b border-ink-100 flex justify-between items-center">
             <div>
-              <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full ${
-                estimate.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                estimate.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                estimate.status === 'declined' ? 'bg-red-100 text-red-800' :
-                'bg-gray-200 text-gray-700'
+              <span className={`badge ${
+                estimate.status === 'accepted' ? 'badge-green' :
+                estimate.status === 'sent' ? 'badge-blue' :
+                estimate.status === 'declined' ? 'badge-red' : 'badge-gray'
               }`}>
                 {estimate.status.toUpperCase()}
               </span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-ink-500">
               Issued: {fmtDate(estimate.createdAt)} &nbsp;|&nbsp; Valid until: {fmtDate(estimate.validUntil)}
             </div>
           </div>
+
 
           {/* Body */}
           <div className="px-10 py-8">

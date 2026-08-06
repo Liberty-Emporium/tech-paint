@@ -191,100 +191,82 @@ export default function SettingsPage() {
   const selectedModel = MODELS.find(m => m.id === settings.llmModel);
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10 px-4">
+    <main className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <form onSubmit={handleSave}>
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-            <p className="text-gray-600">Configure your TechPaint account and AI</p>
+          <div className="mb-8 animate-fade-up">
+            <span className="section-eyebrow">Configuration</span>
+            <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">Settings</h1>
+            <p className="mt-1.5 text-ink-600">Configure your Coltrane Tech Paint account and AI</p>
           </div>
 
           {message && (
-            <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+            <div className={`badge w-full justify-start py-3 px-4 mb-6 !text-sm ${message.type === 'success' ? 'badge-green' : 'badge-red'}`}>
               {message.text}
             </div>
           )}
 
           {/* LOGIN CREDENTIALS */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <span>🔐</span> Login Credentials
-            </h2>
-            <p className="text-gray-500 text-sm mb-5">Change the email and password you use to sign in to TechPaint.</p>
+          <section className="card p-6 sm:p-7 mb-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-1">🔐 Login Credentials</h2>
+            <p className="text-ink-500 text-sm mb-5">Change the email and password you use to sign in to Coltrane Tech Paint.</p>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Login Email</label>
-                <input type="email" name="adminEmail" value={settings.adminEmail} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="admin@techpaint.com" />
+                <label className="label">Login Email</label>
+                <input type="email" name="adminEmail" value={settings.adminEmail} onChange={handleChange} className="input" placeholder="admin@coltranetechpaint.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                <input type="password" value="••••••••" disabled
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-400 cursor-not-allowed" />
+                <label className="label">Current Password</label>
+                <input type="password" value="••••••••" disabled className="input !bg-ink-50 !text-ink-400 cursor-not-allowed" />
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">New Password <span className="text-gray-400 font-normal">(leave blank to keep current)</span></label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••" minLength={5} />
+                <label className="label">New Password <span className="text-ink-400 font-normal">(blank keeps current)</span></label>
+                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="input" placeholder="••••••••" minLength={5} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••" minLength={5} />
+                <label className="label">Confirm New Password</label>
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input" placeholder="••••••••" minLength={5} />
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-              <p className="text-sm text-blue-700">
-                <strong>Signed in as:</strong> {session?.user?.email || '—'} &nbsp;|&nbsp; 
-                <strong>Default:</strong> admin@techpaint.com / admin123
-              </p>
+            <div className="badge-blue w-full justify-start py-3 px-4 mt-4 !font-normal">
+              <strong>Signed in as:</strong> {session?.user?.email || '—'} &nbsp;|&nbsp; <strong>Default:</strong> admin@coltranetechpaint.com / admin123
             </div>
           </section>
 
           {/* AI ESTIMATE GENERATION */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <span>🤖</span> AI Estimate Generation
-            </h2>
-            <p className="text-gray-500 text-sm mb-5">The AI analyzes photos of rooms/walls and generates detailed painting estimates with pricing.</p>
+          <section className="card p-6 sm:p-7 mb-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-1">🤖 AI Estimate Generation</h2>
+            <p className="text-ink-500 text-sm mb-5">The AI analyzes photos of rooms/walls and generates detailed painting estimates with pricing.</p>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-5">
-              <p className="text-sm text-purple-800">
-                <strong>Powered by OpenRouter</strong> — Free vision models analyze your project photos and estimate costs.
-                Get your free API key at{' '}
-                <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">openrouter.ai/keys</a>
-                {' '}— no credit card required.
-              </p>
+            <div className="badge-purple w-full justify-start py-4 px-4 mb-5 !font-normal rounded-xl">
+              <strong>Powered by OpenRouter</strong> — Free vision models analyze your project photos and estimate costs.
+              Get your free API key at{' '}
+              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="underline font-medium">openrouter.ai/keys</a>
+              {' '}— no credit card required.
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+              <label className="label">API Key</label>
               <div className="relative">
-                <input type="password" name="llmApiKey" value={settings.llmApiKey} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-20 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  placeholder="sk-or-v1-..." />
+                <input type="password" name="llmApiKey" value={settings.llmApiKey} onChange={handleChange} className="input !pr-24" placeholder="sk-or-v1-..." />
                 <button type="button" onClick={handleTestLLM} disabled={testingLLM || !settings.llmApiKey}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-soft btn-sm disabled:opacity-50">
                   {testingLLM ? 'Testing…' : 'Test'}
                 </button>
               </div>
               {llmTestResult && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 border">
-                  <span className="font-medium text-green-700">AI Response:</span> {llmTestResult}
+                <div className="mt-2 p-3 bg-ink-50 rounded-lg text-sm text-ink-700 border border-ink-100">
+                  <span className="font-medium text-emerald-600">AI Response:</span> {llmTestResult}
                 </div>
               )}
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-              <select name="llmModel" value={settings.llmModel} onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+              <label className="label">Model</label>
+              <select name="llmModel" value={settings.llmModel} onChange={handleChange} className="input">
                 <optgroup label="🟢 Free — Photo Analysis">
                   {MODELS.filter(m => m.free && m.vision).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </optgroup>
@@ -299,76 +281,67 @@ export default function SettingsPage() {
                 <p className="text-xs text-amber-600 mt-1 font-medium">⚠️ This model cannot analyze photos. Choose a Vision model for image-based estimates.</p>
               )}
               {selectedModel && selectedModel.vision && selectedModel.free && (
-                <p className="text-xs text-green-600 mt-1">✅ Free vision model — can analyze room/wall photos.</p>
+                <p className="text-xs text-emerald-600 mt-1">✅ Free vision model — can analyze room/wall photos.</p>
               )}
             </div>
 
             <div className="mt-4 grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                <label className="label">Temperature</label>
                 <input type="number" name="llmTemperature" value={settings.llmTemperature}
                   onChange={e => setSettings(prev => ({ ...prev, llmTemperature: parseFloat(e.target.value) || 0.7 }))}
-                  min="0" max="2" step="0.1"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                  min="0" max="2" step="0.1" className="input" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
+                <label className="label">Max Tokens</label>
                 <input type="number" name="llmMaxTokens" value={settings.llmMaxTokens}
                   onChange={e => setSettings(prev => ({ ...prev, llmMaxTokens: parseInt(e.target.value) || 4000 }))}
-                  min="100" max="32000" step="100"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" />
+                  min="100" max="32000" step="100" className="input" />
               </div>
             </div>
           </section>
 
           {/* EMAIL SETTINGS */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <span>📧</span> Email Settings
-            </h2>
-            <p className="text-gray-500 text-sm mb-5">Configure SMTP to send estimate emails to customers.</p>
+          <section className="card p-6 sm:p-7 mb-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-1">📧 Email Settings</h2>
+            <p className="text-ink-500 text-sm mb-5">Configure SMTP to send estimate emails to customers.</p>
 
-            <label className="flex items-center gap-3 mb-4">
+            <label className="flex items-center gap-3 mb-4 cursor-pointer">
               <input type="checkbox" checked={settings.emailEnabled}
                 onChange={(e) => setSettings({ ...settings, emailEnabled: e.target.checked })}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" />
-              <span className="font-medium text-gray-700">Enable email</span>
+                className="w-4 h-4 text-brand-600 border-ink-300 rounded focus:ring-brand-500" />
+              <span className="font-medium text-ink-700">Enable email</span>
             </label>
 
             {settings.emailEnabled && (
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
-                    <input type="text" name="smtpHost" value={settings.smtpHost} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="smtp.gmail.com" />
+                    <label className="label">SMTP Host</label>
+                    <input type="text" name="smtpHost" value={settings.smtpHost} onChange={handleChange} className="input" placeholder="smtp.gmail.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
+                    <label className="label">SMTP Port</label>
                     <input type="number" name="smtpPort" value={settings.smtpPort}
                       onChange={(e) => setSettings({ ...settings, smtpPort: parseInt(e.target.value) || 587 })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                      className="input" />
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Username</label>
-                    <input type="text" name="smtpUser" value={settings.smtpUser} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="you@gmail.com" />
+                    <label className="label">SMTP Username</label>
+                    <input type="text" name="smtpUser" value={settings.smtpUser} onChange={handleChange} className="input" placeholder="you@gmail.com" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
-                    <input type="password" name="smtpPass" value={settings.smtpPass} onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="App password" />
+                    <label className="label">SMTP Password</label>
+                    <input type="password" name="smtpPass" value={settings.smtpPass} onChange={handleChange} className="input" placeholder="App password" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">From Address</label>
-                  <input type="email" name="smtpFrom" value={settings.smtpFrom} onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="noreply@yourdomain.com" />
+                  <label className="label">From Address</label>
+                  <input type="email" name="smtpFrom" value={settings.smtpFrom} onChange={handleChange} className="input" placeholder="noreply@yourdomain.com" />
                 </div>
-                <button type="button" onClick={handleTestEmail} disabled={testingEmail}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                <button type="button" onClick={handleTestEmail} disabled={testingEmail} className="btn btn-soft btn-md disabled:opacity-50">
                   {testingEmail ? 'Testing…' : 'Send Test Email'}
                 </button>
               </div>
@@ -376,28 +349,23 @@ export default function SettingsPage() {
           </section>
 
           {/* NEXTAUTH SETTINGS */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <span>🔑</span> NextAuth Config
-            </h2>
-            <p className="text-gray-500 text-sm mb-5">NextAuth session configuration. Only change if you know what you&apos;re doing.</p>
+          <section className="card p-6 sm:p-7 mb-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-1">🔑 NextAuth Config</h2>
+            <p className="text-ink-500 text-sm mb-5">NextAuth session configuration. Only change if you know what you&apos;re doing.</p>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth URL</label>
-                <input type="url" name="nextAuthUrl" value={settings.nextAuthUrl} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://your-domain.com" />
+                <label className="label">NextAuth URL</label>
+                <input type="url" name="nextAuthUrl" value={settings.nextAuthUrl} onChange={handleChange} className="input" placeholder="https://your-domain.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">NextAuth Secret</label>
-                <input type="password" name="nextAuthSecret" value={settings.nextAuthSecret} onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="openssl rand -base64 32" />
+                <label className="label">NextAuth Secret</label>
+                <input type="password" name="nextAuthSecret" value={settings.nextAuthSecret} onChange={handleChange} className="input" placeholder="openssl rand -base64 32" />
               </div>
             </div>
           </section>
 
           <div className="sticky bottom-4 flex justify-end">
-            <button type="submit" disabled={saving}
-              className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={saving} className="btn btn-primary btn-lg !px-10 disabled:opacity-50 shadow-lift">
               {saving ? 'Saving…' : 'Save Settings'}
             </button>
           </div>

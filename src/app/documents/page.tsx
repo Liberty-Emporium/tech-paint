@@ -7,15 +7,19 @@ interface Document {
   id: string;
   name: string;
   type: 'estimate' | 'contract' | 'invoice' | 'other';
-  estimateId?: string;
-  envelopeId?: string;
-  filePath: string;
-  fileSize: number;
-  mimeType: string;
   status: 'draft' | 'sent' | 'signed' | 'completed' | 'voided';
+  mimeType: string;
+  fileSize: number;
+  filePath: string;
+  estimateId?: string;
   createdAt: string;
-  updatedAt: string;
 }
+
+const statusStyles: Record<string, string> = {
+  draft: 'badge-gray', sent: 'badge-blue', signed: 'badge-green',
+  completed: 'badge-purple', voided: 'badge-red',
+};
+const typeIcons: Record<string, string> = { estimate: '📋', contract: '📄', invoice: '💰', other: '📎' };
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -23,106 +27,56 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
 
-  const fetchDocuments = async () => {
-    try {
-      const res = await fetch('/api/documents');
-      if (res.ok) {
-        const data = await res.json();
-        setDocuments(data);
-      }
-    } catch (error) {
-      console.error('Failed to load documents:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchDocuments();
+    const load = async () => {
+      try {
+        const res = await fetch('/api/documents');
+        if (res.ok) setDocuments(await res.json());
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    };
+    load();
   }, []);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      draft: 'bg-gray-100 text-gray-700',
-      sent: 'bg-blue-100 text-blue-700',
-      signed: 'bg-green-100 text-green-700',
-      completed: 'bg-purple-100 text-purple-700',
-      voided: 'bg-red-100 text-red-700'
-    };
-    return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status] || 'bg-gray-100 text-gray-700'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
-
-  const getTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      estimate: '📋',
-      contract: '📄',
-      invoice: '💰',
-      other: '📎'
-    };
-    return icons[type] || '📎';
-  };
-
-  const filteredDocuments = documents
-    .filter(doc => 
-      (filterType === 'all' || doc.type === filterType) &&
-      (doc.name.toLowerCase().includes(search.toLowerCase()) ||
-       doc.id.toLowerCase().includes(search.toLowerCase()) ||
-       doc.estimateId?.toLowerCase().includes(search.toLowerCase()))
-    );
+  const filtered = documents.filter((doc) =>
+    (filterType === 'all' || doc.type === filterType) &&
+    (doc.name.toLowerCase().includes(search.toLowerCase()) ||
+     doc.id.toLowerCase().includes(search.toLowerCase()) ||
+     doc.estimateId?.toLowerCase().includes(search.toLowerCase()))
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 animate-fade-up">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Documents</h1>
-            <p className="text-gray-600">Manage your estimates, contracts, and signed documents</p>
+            <span className="section-eyebrow">Vault</span>
+            <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">Documents</h1>
+            <p className="mt-1.5 text-ink-600">Manage your estimates, contracts, and signed documents</p>
           </div>
-          <Link
-            href="/estimates/new"
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
+          <Link href="/estimates/new" className="btn btn-primary btn-md">
             + New Estimate
           </Link>
         </div>
 
-        {/* Search and Filter */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search documents..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+        {/* Search & filter */}
+        <div className="card p-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <svg className="w-4 h-4 text-ink-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" placeholder="Search documents…" value={search} onChange={(e) => setSearch(e.target.value)} className="input !pl-10" />
             </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
+            <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="input sm:!w-48">
               <option value="all">All Types</option>
               <option value="estimate">Estimates</option>
               <option value="contract">Contracts</option>
@@ -132,83 +86,56 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        {/* Documents Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Documents table */}
+        <div className="card overflow-hidden">
           {loading ? (
-            <div className="text-center py-12 text-gray-500">Loading documents…</div>
-          ) : filteredDocuments.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-4xl mb-4">📁</div>
-              <p className="text-lg">No documents found</p>
-              <p className="text-sm mt-2">Create an estimate to generate documents</p>
+            <div className="py-16 text-center"><div className="inline-block w-8 h-8 border-[3px] border-brand-100 border-t-brand-600 rounded-full animate-spin" /></div>
+          ) : filtered.length === 0 ? (
+            <div className="py-16 text-center">
+              <div className="text-5xl mb-4">📁</div>
+              <p className="font-display text-lg font-bold text-ink-900 mb-1">No documents found</p>
+              <p className="text-sm text-ink-500">Create an estimate to generate documents</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-100">
+              <table className="table-shell">
+                <thead>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Related Estimate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th>Document</th>
+                    <th>Type</th>
+                    <th>Related Estimate</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th className="!text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredDocuments.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                <tbody>
+                  {filtered.map((doc) => (
+                    <tr key={doc.id}>
+                      <td>
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{getTypeIcon(doc.type)}</span>
+                          <div className="w-10 h-10 rounded-xl bg-ink-50 flex items-center justify-center text-xl">{typeIcons[doc.type] || '📎'}</div>
                           <div>
-                            <p className="font-medium text-gray-900">{doc.name}</p>
-                            <p className="text-sm text-gray-500">{doc.mimeType}</p>
+                            <p className="font-semibold text-ink-900">{doc.name}</p>
+                            <p className="text-xs text-ink-400">{doc.mimeType}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                          {doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td><span className="badge-gray">{doc.type.charAt(0).toUpperCase() + doc.type.slice(1)}</span></td>
+                      <td>
                         {doc.estimateId ? (
-                          <a href={`/estimates/${doc.estimateId}`} className="text-blue-600 hover:text-blue-700 font-medium">
-                            {doc.estimateId}
-                          </a>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
+                          <Link href={`/estimates/${doc.estimateId}`} className="text-brand-600 hover:text-brand-700 font-medium">{doc.estimateId}</Link>
+                        ) : <span className="text-ink-400">—</span>}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {formatFileSize(doc.fileSize)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(doc.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {formatDate(doc.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td>{formatFileSize(doc.fileSize)}</td>
+                      <td><span className={statusStyles[doc.status] || 'badge-gray'}>{doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}</span></td>
+                      <td>{formatDate(doc.createdAt)}</td>
+                      <td className="!text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <a 
-                            href={doc.filePath} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 font-medium"
-                          >
-                            View
-                          </a>
+                          <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">View</a>
                           {doc.filePath.endsWith('.pdf') && (
-                            <a 
-                              href={doc.filePath} 
-                              download
-                              className="text-gray-600 hover:text-gray-700 font-medium"
-                            >
-                              Download
-                            </a>
+                            <a href={doc.filePath} download className="btn btn-soft btn-sm">Download</a>
                           )}
                         </div>
                       </td>

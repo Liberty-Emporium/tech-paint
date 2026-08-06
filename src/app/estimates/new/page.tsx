@@ -2,12 +2,6 @@
 
 import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-
-interface PhotoFile {
-  file: File;
-  preview: string;
-}
 
 interface FormData {
   customerName: string;
@@ -21,50 +15,38 @@ interface FormData {
 }
 
 export default function NewEstimatePage() {
-  const [formData, setFormData] = useState({
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    customerAddress: '',
-    propertyDescription: '',
-    roomType: '',
-    squareFootage: '',
-    notes: '',
+  const [formData, setFormData] = useState<FormData>({
+    customerName: '', customerEmail: '', customerPhone: '', customerAddress: '',
+    propertyDescription: '', roomType: '', squareFootage: '', notes: '',
   });
   const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  const handleFileDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    if (files.length > 0) {
-      const newPhotos = files.map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-      }));
-      setPhotos(prev => [...prev, ...newPhotos]);
+  const addFiles = useCallback((files: File[]) => {
+    const imgs = files.filter(f => f.type.startsWith('image/'));
+    if (imgs.length > 0) {
+      setPhotos(prev => [...prev, ...imgs.map(file => ({ file, preview: URL.createObjectURL(file) }))]);
     }
   }, []);
 
+  const handleFileDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    addFiles(Array.from(e.dataTransfer.files));
+  }, [addFiles]);
+
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const files = Array.from(e.target.files);
-      const newPhotos = files.map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-      }));
-      setPhotos(prev => [...prev, ...newPhotos]);
+      addFiles(Array.from(e.target.files));
       e.target.value = '';
     }
-  }, []);
+  }, [addFiles]);
 
   const removePhoto = useCallback((index: number) => {
     setPhotos(prev => {
@@ -77,28 +59,13 @@ export default function NewEstimatePage() {
     e.preventDefault();
     setError('');
     setGenerating(true);
-
     try {
       const fd = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value) fd.append(key, value);
-      });
-
-      photos.forEach(p => {
-        fd.append('photos', p.file);
-      });
-
-      const response = await fetch('/api/estimates/generate', {
-        method: 'POST',
-        body: fd,
-      });
-
+      Object.entries(formData).forEach(([key, value]) => { if (value) fd.append(key, value); });
+      photos.forEach(p => fd.append('photos', p.file));
+      const response = await fetch('/api/estimates/generate', { method: 'POST', body: fd });
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate estimate');
-      }
-
+      if (!response.ok) throw new Error(data.error || 'Failed to generate estimate');
       window.location.href = `/estimates/${data.estimateId}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate estimate');
@@ -108,95 +75,60 @@ export default function NewEstimatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">New Estimate</h1>
-          <p className="text-gray-600">Fill in the project details and let AI generate a professional estimate</p>
+        {/* Header */}
+        <div className="mb-8 animate-fade-up">
+          <Link href="/estimates" className="text-sm text-ink-500 hover:text-brand-600 transition-colors">← Back to estimates</Link>
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">New Estimate</h1>
+          <p className="mt-1.5 text-ink-600">Fill in the project details and let AI generate a professional estimate</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Customer Info */}
-          <section className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h18a7 7 0 00-14 0z" />
-              </svg>
-              <span>Customer Information</span>
+          <section className="card p-7 sm:p-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-6 flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </span>
+              Customer Information
             </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                <input
-                  type="text"
-                  name="customerName"
-                  value={formData.customerName}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Jane Smith"
-                />
+                <label className="label">Name *</label>
+                <input type="text" name="customerName" value={formData.customerName} onChange={handleChange} required className="input" placeholder="Jane Smith" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
-                <input
-                  type="tel"
-                  name="customerPhone"
-                  value={formData.customerPhone}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="(336) 555-0123"
-                />
+                <label className="label">Phone *</label>
+                <input type="tel" name="customerPhone" value={formData.customerPhone} onChange={handleChange} required className="input" placeholder="(336) 555-0123" />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-              <input
-                type="email"
-                name="customerEmail"
-                value={formData.customerEmail}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="admin@techpaint.com"
-              />
+            <div className="mt-5">
+              <label className="label">Email *</label>
+              <input type="email" name="customerEmail" value={formData.customerEmail} onChange={handleChange} required className="input" placeholder="jane@email.com" />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Property Address *</label>
-              <input
-                type="text"
-                name="customerAddress"
-                value={formData.customerAddress}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="123 Main St, Liberty, NC"
-              />
+            <div className="mt-5">
+              <label className="label">Property Address *</label>
+              <input type="text" name="customerAddress" value={formData.customerAddress} onChange={handleChange} required className="input" placeholder="123 Main St, Liberty, NC" />
             </div>
           </section>
 
           {/* Property Details */}
-          <section className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v18a2 2 0 002 2h10a2 2 0 002-2V9.414l3 3m13.293-3.086a1 1 0 010 1.414l-5.586 5.586a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 001.414 0l2-2a1 1 0 000-1.414z" />
-              </svg>
-              <span>Property Details</span>
+          <section className="card p-7 sm:p-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-6 flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </span>
+              Property Details
             </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Room / Area Type</label>
-                <select
-                  name="roomType"
-                  value={formData.roomType}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
+                <label className="label">Room / Area Type</label>
+                <select name="roomType" value={formData.roomType} onChange={handleChange} className="input">
                   <option value="">Select…</option>
                   <option>Interior — single room</option>
                   <option>Interior — multiple rooms</option>
@@ -209,84 +141,53 @@ export default function NewEstimatePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Square Footage (approx)</label>
-                <input
-                  type="number"
-                  name="squareFootage"
-                  value={formData.squareFootage}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="1200"
-                  min="0"
-                />
+                <label className="label">Square Footage (approx)</label>
+                <input type="number" name="squareFootage" value={formData.squareFootage} onChange={handleChange} min="0" className="input" placeholder="1200" />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Property Description</label>
-              <textarea
-                name="propertyDescription"
-                value={formData.propertyDescription}
-                onChange={handleChange}
-                rows={2}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Single-story ranch, built 1998, current color beige…"
-              />
+            <div className="mt-5">
+              <label className="label">Property Description</label>
+              <textarea name="propertyDescription" value={formData.propertyDescription} onChange={handleChange} rows={2} className="input" placeholder="Single-story ranch, built 1998, current color beige…" />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Special Requests</label>
-              <textarea
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                rows={2}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Peeling trim on north side, want low-VOC paint…"
-              />
+            <div className="mt-5">
+              <label className="label">Notes / Special Requests</label>
+              <textarea name="notes" value={formData.notes} onChange={handleChange} rows={2} className="input" placeholder="Peeling trim on north side, want low-VOC paint…" />
             </div>
           </section>
 
           {/* Photos */}
-          <section className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0l6 6a2 2 0 010 2.828L12 22.5l7.586-7.586a2 2 0 000-2.828l-8-8a2 2 0 00-2.828 0l-6 6a2 2 0 000 2.828z" />
-              </svg>
-              <span>Photos of the Area</span>
+          <section className="card p-7 sm:p-8">
+            <h2 className="font-display text-lg font-bold text-ink-900 mb-2 flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                </svg>
+              </span>
+              Photos of the Area
             </h2>
-            <p className="text-gray-600 mb-4">Upload photos of the area to help AI identify surfaces, conditions, and details</p>
+            <p className="text-ink-600 text-sm mb-5 ml-[42px]">Upload photos to help AI identify surfaces, conditions, and details.</p>
 
             <div
               onDrop={handleFileDrop}
               onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition"
+              className="border-2 border-dashed border-ink-200 rounded-2xl p-10 text-center cursor-pointer hover:border-brand-300 hover:bg-brand-50/40 transition-all"
             >
-              <div className="text-3xl mb-2">📷</div>
-              <p className="text-gray-600 text-sm">Drag & drop photos here, or click to browse</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+              <div className="text-4xl mb-3">📷</div>
+              <p className="text-ink-600 text-sm font-medium">Drag & drop photos here, or click to browse</p>
+              <p className="text-ink-400 text-xs mt-1">JPG / PNG — you can add up to 10</p>
+              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
             </div>
 
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-5">
                 {photos.map((p, i) => (
                   <div key={i} className="relative group">
-                    <img src={p.preview} alt={`upload ${i + 1}`} className="w-full h-20 object-cover rounded-lg" />
+                    <img src={p.preview} alt={`upload ${i + 1}`} className="w-full h-20 object-cover rounded-xl border border-ink-100" />
                     <button
-                      type="button"
-                      onClick={() => removePhoto(i)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition"
-                    >
-                      ✕
-                    </button>
+                      type="button" onClick={() => removePhoto(i)}
+                      className="absolute -top-2 -right-2 bg-rose-600 text-white rounded-full w-6 h-6 text-xs opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-rose-700"
+                    >✕</button>
                   </div>
                 ))}
               </div>
@@ -294,19 +195,27 @@ export default function NewEstimatePage() {
           </section>
 
           {/* Submit */}
-          <div className="pt-4">
+          <div className="pt-2">
             <button
-              type="submit"
-              disabled={generating}
-              className="w-full bg-green-600 text-white font-semibold py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit" disabled={generating}
+              className="w-full btn btn-primary btn-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {generating ? 'Generating Estimate with AI…' : 'Generate Estimate with AI'}
+              {generating ? (
+                <span className="flex items-center gap-2.5">
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Generating Estimate with AI…
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Generate Estimate with AI
+                </span>
+              )}
             </button>
-
             {error && (
-              <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-                {error}
-              </div>
+              <div className="mt-4 badge-red w-full justify-start py-3 px-4 text-sm border border-rose-200">{error}</div>
             )}
           </div>
         </form>
