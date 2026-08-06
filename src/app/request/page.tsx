@@ -129,10 +129,10 @@ export default function RequestEstimatePage() {
               >
                 <div className="text-4xl mb-3">📷</div>
                 <p className="text-ink-700 font-medium">Click to upload or drag photos here</p>
-                <p className="text-ink-400 text-sm mt-1">Or take a photo from your phone camera</p>
+                <p className="text-ink-400 text-sm mt-1">Choose from your photo gallery</p>
                 <p className="text-ink-400 text-xs mt-2">Up to 10 photos • JPG, PNG, WebP</p>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
 
               {previews.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-5">
