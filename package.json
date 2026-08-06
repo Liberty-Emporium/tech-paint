@@ -10,6 +10,7 @@
   "dependencies": {
     "@types/nodemailer": "^8.0.1",
     "@types/uuid": "^10.0.0",
+    "jspdf": "^4.2.1",
     "next": "^14.2.35",
     "next-auth": "^4.24.15",
     "nodemailer": "^7.0.13",

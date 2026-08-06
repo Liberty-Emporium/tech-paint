@@ -19,6 +19,7 @@ interface Estimate {
   validUntil: string;
   items: { id: string; description: string; quantity: number; unitPrice: number; total: number }[];
   photos?: string[];
+  signature?: { signerName: string; signedAt: string };
 }
 
 export default function EstimateDetailPage({ params }: { params: { id: string } }): JSX.Element {
@@ -58,16 +59,49 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
     finally { setSending(false); }
   };
 
-  const handleSendToDocuSign = async () => {
+  const handleSendForSignature = async () => {
     if (!estimate) return;
     setSending(true);
     try {
-      const res = await fetch('/api/docusign', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create_envelope', estimateId: estimate.id, customerEmail: estimate.customerEmail, customerName: estimate.customerName }) });
-      const data = await res.json();
-      if (data.envelopeId) alert('DocuSign envelope created! Check your email to sign.');
-      else alert('Failed to create DocuSign envelope');
-    } catch (err) { alert('Failed to create DocuSign envelope'); }
-    finally { setSending(false); }
+      // Mark as sent so it's tracked as awaiting signature.
+      await fetch(`/api/estimates/${estimate.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'sent' }),
+      });
+      const signUrl = `${window.location.origin}/sign/${estimate.id}`;
+      setEstimate(prev => prev ? { ...prev, status: 'sent' } : null);
+
+      // Try to email the signing link if SMTP is configured.
+      let emailed = false;
+      try {
+        const eRes = await fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: estimate.customerEmail,
+            subject: `Your estimate ${estimate.estimateNumber} is ready to sign`,
+            html: `<p>Hi ${estimate.customerName},</p><p>Your painting estimate <strong>${estimate.estimateNumber}</strong> is ready for review and electronic signature.</p><p><a href="${signUrl}" style="background:#3d6cff;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block;margin:8px 0">Review & Sign Estimate</a></p><p>Coltrane Tech Paint</p>`,
+          }),
+        });
+        const d = await eRes.json();
+        emailed = d.success === true;
+      } catch { /* email not configured — fine */ }
+
+      if (emailed) {
+        alert('Signing link sent to ' + estimate.customerEmail + '. Check your SMTP/email to confirm delivery.');
+      } else {
+        // Copy the link so the contractor can send it any way they like.
+        try {
+          await navigator.clipboard.writeText(signUrl);
+          alert(`Signing link copied to clipboard — send it to ${estimate.customerName}. (Email isn't configured yet.)`);
+        } catch {
+          alert(`Signing link ready. Send this to the customer: ${signUrl}  (Email isn't configured yet.)`);
+        }
+      }
+    } catch (err) {
+      alert('Failed to prepare the estimate for signing.');
+    } finally { setSending(false); }
   };
 
   if (loading) {
@@ -235,10 +269,10 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
               <div className="space-y-3">
                 {status === 'draft' && (
                   <>
-                    <button onClick={handleSendToDocuSign} disabled={sending}
+                    <button onClick={handleSendForSignature} disabled={sending}
                       className="btn btn-md w-full !py-3 text-white disabled:opacity-50 hover:-translate-y-0.5"
                       style={{ backgroundImage: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
-                      {sending ? 'Sending…' : '📝 Send to DocuSign'}
+                      {sending ? 'Sending…' : '✍️ Send for Signature'}
                     </button>
                     <button onClick={handleSendEstimate} disabled={sending} className="btn btn-primary btn-md w-full !py-3 disabled:opacity-50">
                       {sending ? 'Sending…' : '📧 Send via Email'}
@@ -246,18 +280,30 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                   </>
                 )}
                 {status === 'sent' && (
-                  <button onClick={handleSendToDocuSign} disabled={sending}
-                    className="btn btn-md w-full !py-3 text-white disabled:opacity-50"
-                    style={{ backgroundImage: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
-                    {sending ? 'Sending…' : '📝 Send to DocuSign'}
-                  </button>
+                  <div className="space-y-3">
+                    <div className="badge-blue w-full justify-start py-3 px-4 !text-sm !font-normal">
+                      <p className="font-semibold">Sent for signature</p>
+                      <p className="text-blue-600 text-sm mt-0.5">The customer can sign at <span className="font-mono text-xs underline">/sign/{estimate.id}</span></p>
+                    </div>
+                    <Link href={`/sign/${estimate.id}`} target="_blank" rel="noopener noreferrer"
+                      className="btn btn-md w-full !py-3" style={{ backgroundImage: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: '#fff' }}>
+                      Open Signing Page →
+                    </Link>
+                  </div>
                 )}
                 {status === 'accepted' && (
-                  <div className="badge-green w-full justify-start py-3 px-4 !text-sm !font-normal">
-                    <div>
-                      <p className="font-semibold mb-1">✅ Estimate Accepted!</p>
-                      <p className="text-emerald-700 text-sm">The client signed. You can schedule the work.</p>
+                  <div className="space-y-3">
+                    <div className="badge-green w-full justify-start py-3 px-4 !text-sm !font-normal">
+                      <div>
+                        <p className="font-semibold mb-1">✅ Estimate Accepted!</p>
+                        <p className="text-emerald-700 text-sm">
+                          Signed by {estimate.signature?.signerName || 'the client'}
+                          {estimate.signature?.signedAt ? ` on ${new Date(estimate.signature.signedAt).toLocaleDateString()}` : ''}. You can schedule the work.
+                        </p>
+                      </div>
                     </div>
+                    <Link href={`/sign/${estimate.id}`} target="_blank" rel="noopener noreferrer"
+                      className="btn btn-ghost btn-md w-full">📄 View / Download Signed Copy</Link>
                   </div>
                 )}
                 {status === 'declined' && (
