@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
 interface Document {
@@ -26,17 +26,45 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const load = async () => {
+    try {
+      const res = await fetch('/api/documents');
+      if (res.ok) setDocuments(await res.json());
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch('/api/documents');
-        if (res.ok) setDocuments(await res.json());
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    };
     load();
   }, []);
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadError('');
+    setUploading(true);
+    try {
+      const file = files[0];
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('name', file.name);
+      fd.append('type', 'other');
+      const res = await fetch('/api/documents', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Upload failed');
+      }
+      await load();
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -62,10 +90,32 @@ export default function DocumentsPage() {
             <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">Documents</h1>
             <p className="mt-1.5 text-ink-600">Manage your estimates, contracts, and signed documents</p>
           </div>
-          <Link href="/estimates/new" className="btn btn-primary btn-md">
-            + New Estimate
-          </Link>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="btn btn-soft btn-md disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {uploading ? 'Uploading…' : 'Upload File'}
+            </button>
+            <Link href="/estimates/new" className="btn btn-primary btn-md">
+              + New Estimate
+            </Link>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => handleUpload(e.target.files)}
+            />
+          </div>
         </div>
+
+        {uploadError && (
+          <div className="badge-red w-full justify-start py-2.5 px-3 mb-6 !text-sm border border-rose-200">{uploadError}</div>
+        )}
 
         {/* Search & filter */}
         <div className="card p-4 mb-6">
