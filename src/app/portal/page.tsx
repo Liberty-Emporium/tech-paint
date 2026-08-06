@@ -48,12 +48,20 @@ export default function PortalPage() {
     <main className="min-h-screen bg-ink-50 pt-24 px-4 sm:px-6 lg:px-8 pb-16">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-8 animate-fade-up">
-          <span className="section-eyebrow">Client Portal</span>
-          <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">My Estimates & Invoices</h1>
-          <p className="mt-1.5 text-ink-600">
-            Welcome, <strong className="text-ink-900">{session?.user?.name || session?.user?.email}</strong>. View and download your painting estimates below.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 animate-fade-up">
+          <div>
+            <span className="section-eyebrow">Client Portal</span>
+            <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">My Estimates & Invoices</h1>
+            <p className="mt-1.5 text-ink-600">
+              Welcome, <strong className="text-ink-900">{session?.user?.name || session?.user?.email}</strong>. View, download, or start a new painting estimate below.
+            </p>
+          </div>
+          <Link href="/request" className="btn btn-primary btn-lg">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            New Estimate
+          </Link>
         </div>
 
         {estimates.length === 0 ? (
