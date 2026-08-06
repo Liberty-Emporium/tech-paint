@@ -93,12 +93,6 @@ export default function Navigation() {
             >
               Sign Out
             </button>
-            {isAdmin && (
-              <button
-                onClick={() => signOut({ callbackUrl: '/login' })}
-                className="hidden"
-              ></button>
-            )}
           </div>
 
           {/* Mobile menu button */}
