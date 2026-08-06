@@ -178,9 +178,16 @@ export async function POST(request: NextRequest) {
       photos = formData.getAll('photos') as File[];
     }
 
-    if (!customerName || !customerEmail || !customerPhone || !customerAddress || !propertyDescription) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!propertyDescription) {
+      return NextResponse.json({ error: 'Please describe the work that needs to be done.' }, { status: 400 });
     }
+    if (!customerEmail || !customerName) {
+      return NextResponse.json({ error: 'Your sign-in profile is missing an email or name. Please update your profile in Settings.' }, { status: 400 });
+    }
+    // Fall backs so estimates always generate even if optional fields are blank.
+    customerName = customerName || 'Coltrane Customer';
+    customerPhone = customerPhone || '';
+    customerAddress = customerAddress || '';
 
     // Save photos to disk AND convert to base64 for AI
     const uploadDir = join(process.cwd(), 'uploads', 'estimates');

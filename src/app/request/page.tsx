@@ -70,12 +70,36 @@ export default function RequestEstimatePage() {
       fd.append('squareFootage', form.squareFootage);
       fd.append('notes', form.notes);
       photos.forEach(p => fd.append('photos', p));
-      const res = await fetch('/api/estimates/generate', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (res.ok) { setEstimate(data); setStep('result'); }
-      else { setError(data.error || 'Failed to generate estimate'); setStep('form'); }
-    } catch (err) {
-      setError('Something went wrong. Please try again.'); setStep('form');
+
+      // Give the server time to finish, but fail clearly if the network drops.
+      const res = await fetch('/api/estimates/generate', {
+        method: 'POST',
+        body: fd,
+      }).catch((networkErr) => {
+        throw new Error(
+          'Could not reach the server. Please check your internet connection and try again. (' +
+          (networkErr instanceof Error && networkErr.name === 'AbortError' ? 'request timed out' : 'network error') + ')'
+        );
+      });
+
+      let data: any = {};
+      try { data = await res.json(); }
+      catch { /* non-JSON response — fall through */ }
+
+      if (res.ok && data?.estimate) { setEstimate(data); setStep('result'); }
+      else {
+        const serverMsg = data?.error || data?.message || '';
+        setError(
+          serverMsg && serverMsg !== 'Something went wrong. Please try again.'
+            ? serverMsg
+            : 'The estimate could not be generated. Try again in a few seconds, or check that your AI settings are configured.'
+        );
+        setStep('form');
+      }
+    } catch (e) {
+      // Friendly, specific message instead of a generic "something went wrong".
+      setError(e instanceof Error ? e.message : 'An unexpected error occurred. Please try again.');
+      setStep('form');
     }
   };
 
