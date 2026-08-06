@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SETTINGS_FILE } from './config';
 
 export interface EmailOptions {
   to: string | string[];
@@ -24,7 +25,7 @@ export interface SMTPConfig {
   };
 }
 
-const SETTINGS_FILE = '/home/django/tech-paint/settings.json';
+const SETTINGS_FILE_USED = SETTINGS_FILE;
 
 interface StoredSettings {
   emailEnabled: boolean;
@@ -39,8 +40,8 @@ interface StoredSettings {
 
 function readSettings(): StoredSettings {
   try {
-    if (fs.existsSync('/home/django/tech-paint/settings.json')) {
-      const data = fs.readFileSync('/home/django/tech-paint/settings.json', 'utf-8');
+    if (fs.existsSync(SETTINGS_FILE_USED)) {
+      const data = fs.readFileSync(SETTINGS_FILE_USED, 'utf-8');
       return { 
         emailEnabled: false, 
         smtpHost: '', 
@@ -90,8 +91,8 @@ class EmailService {
 
   private readSettings() {
     try {
-      if (fs.existsSync('/home/django/tech-paint/settings.json')) {
-        const data = fs.readFileSync('/home/django/tech-paint/settings.json', 'utf-8');
+      if (fs.existsSync(SETTINGS_FILE_USED)) {
+        const data = fs.readFileSync(SETTINGS_FILE_USED, 'utf-8');
         return { 
           emailEnabled: false, 
           smtpHost: '', 

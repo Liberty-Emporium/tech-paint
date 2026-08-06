@@ -8,13 +8,16 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'customer';
+  role: 'owner' | 'secretary' | 'employee' | 'customer';
   company?: string;
   phone?: string;
   createdAt: string;
 }
 
-const emptyForm = { email: '', password: '', name: '', role: 'customer' as 'admin' | 'customer', company: '', phone: '' };
+const ROLE_LABELS: Record<string, string> = { owner: 'Owner', secretary: 'Secretary', employee: 'Employee', customer: 'Customer' };
+const ROLE_BADGES: Record<string, string> = { owner: 'badge-purple', secretary: 'badge-blue', employee: 'badge-amber', customer: 'badge-green' };
+
+const emptyForm = { email: '', password: '', name: '', role: 'customer' as User['role'], company: '', phone: '' };
 
 export default function UsersPage() {
   const { data: session, status } = useSession();
@@ -28,8 +31,9 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.replace('/login'); return; }
-    if (status === 'authenticated' && (session?.user as any)?.role !== 'admin') { router.replace('/portal'); return; }
+    if (status === 'authenticated' && (session?.user as any)?.role !== 'owner') { router.replace('/portal'); return; }
     if (status === 'authenticated') loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const loadUsers = async () => {
@@ -46,8 +50,12 @@ export default function UsersPage() {
     setSaving(true);
     try {
       const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      if (res.ok) { setShowModal(false); setForm(emptyForm); loadUsers(); }
-      else { const data = await res.json(); setError(data.error || 'Failed to create user'); }
+      if (res.ok) {
+        setShowModal(false); setForm(emptyForm); loadUsers();
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to create user');
+      }
     } catch { setError('Failed to create user'); }
     finally { setSaving(false); }
   };
@@ -72,7 +80,7 @@ export default function UsersPage() {
           <div>
             <span className="section-eyebrow">Access</span>
             <h1 className="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-ink-950">User Management</h1>
-            <p className="mt-1.5 text-ink-600">Manage admin and customer accounts</p>
+            <p className="mt-1.5 text-ink-600">Manage owner, staff, and customer accounts</p>
           </div>
           <button onClick={() => setShowModal(true)} className="btn btn-primary btn-md">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -107,11 +115,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td>{u.email}</td>
-                    <td>
-                      <span className={u.role === 'admin' ? 'badge-purple' : 'badge-green'}>
-                        {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
-                      </span>
-                    </td>
+                    <td><span className={ROLE_BADGES[u.role] || 'badge-gray'}>{ROLE_LABELS[u.role] || u.role}</span></td>
                     <td>{u.company || '—'}</td>
                     <td className="!text-right">
                       <button onClick={() => handleDelete(u.id, u.name)}
@@ -148,9 +152,11 @@ export default function UsersPage() {
                   </div>
                   <div>
                     <label className="label">Role</label>
-                    <select value={form.role} onChange={e => setForm({...form, role: e.target.value as any})} className="input">
+                    <select value={form.role} onChange={e => setForm({...form, role: e.target.value as User['role']})} className="input">
+                      <option value="owner">Owner</option>
+                      <option value="secretary">Secretary</option>
+                      <option value="employee">Employee</option>
                       <option value="customer">Customer</option>
-                      <option value="admin">Admin</option>
                     </select>
                   </div>
                 </div>

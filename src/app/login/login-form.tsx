@@ -25,10 +25,9 @@ export default function LoginForm() {
 
     if (result?.error) {
       setError('Invalid email or password');
-    } else if (callbackUrl) {
-      window.location.href = callbackUrl;
     } else {
-      window.location.href = '/dashboard';
+      // Portal redirects staff to the dashboard based on role.
+      window.location.href = callbackUrl || '/portal';
     }
   };
 

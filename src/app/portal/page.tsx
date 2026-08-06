@@ -3,13 +3,21 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function PortalPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [estimates, setEstimates] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === 'authenticated') {
+      const role = (session?.user as any)?.role;
+      if (role !== 'customer') {
+        // Staff (owner/secretary/employee) use the dashboard, not the customer portal.
+        router.push('/dashboard');
+        return;
+      }
       const fetchEstimates = async () => {
         try {
           const res = await fetch('/api/estimates');

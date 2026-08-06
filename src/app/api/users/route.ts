@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUsers, addUser, updateUser, deleteUser, saveUsersToDisk } from '@/lib/users';
+import { getUsers, addUser, updateUser, deleteUser } from '@/lib/users';
+import { requirePermission } from '@/lib/require-auth';
+import { Role, ALL_ROLES } from '@/lib/permissions';
 
-// GET /api/users — list all users (admin only, but we'll check role in the handler)
+function isRole(v: any): v is Role {
+  return ALL_ROLES.includes(v);
+}
+
+// GET /api/users — list all users (owner only)
 export async function GET() {
+  const { error } = await requirePermission('users');
+  if (error) return error;
   const users = getUsers();
   // Strip passwords from response
   const safe = users.map(({ password, ...rest }) => rest);
   return NextResponse.json(safe);
 }
 
-// POST /api/users — create a new user
+// POST /api/users — create a new user (owner only)
 export async function POST(request: NextRequest) {
+  const { error } = await requirePermission('users');
+  if (error) return error;
   try {
     const body = await request.json();
     const { email, password, name, role, company, phone } = body;
@@ -28,12 +38,11 @@ export async function POST(request: NextRequest) {
       email,
       password,
       name,
-      role: role || 'customer',
+      role: isRole(role) ? role : 'customer',
       company,
       phone,
     });
 
-    await saveUsersToDisk();
     const { password: _, ...safe } = user;
     return NextResponse.json(safe, { status: 201 });
   } catch (error) {
@@ -41,8 +50,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH /api/users — update a user
+// PATCH /api/users — update a user (owner only)
 export async function PATCH(request: NextRequest) {
+  const { error } = await requirePermission('users');
+  if (error) return error;
   try {
     const body = await request.json();
     const { id, ...updates } = body;
@@ -51,12 +62,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
+    if (updates.role !== undefined && !isRole(updates.role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    }
+
     const user = updateUser(id, updates);
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    await saveUsersToDisk();
     const { password: _, ...safe } = user;
     return NextResponse.json(safe);
   } catch (error) {
@@ -64,8 +78,10 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-// DELETE /api/users — delete a user
+// DELETE /api/users — delete a user (owner only)
 export async function DELETE(request: NextRequest) {
+  const { error } = await requirePermission('users');
+  if (error) return error;
   try {
     const { id } = await request.json();
     if (!id) {
@@ -77,7 +93,6 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    await saveUsersToDisk();
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });

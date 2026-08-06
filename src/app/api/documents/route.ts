@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { all, insert } from '@/lib/db';
+import { requireAuth, requirePermission } from '@/lib/require-auth';
 
 interface Document {
   id: string;
@@ -18,36 +20,10 @@ interface Document {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (auth.error) return auth.error;
   try {
-    // In a real app, fetch from database
-    const documents: Document[] = [
-      {
-        id: 'doc_1',
-        name: 'Painting Estimate - Exterior House',
-        type: 'estimate',
-        estimateId: 'EST-abc123',
-        filePath: '/uploads/documents/est_EST-abc123.pdf',
-        fileSize: 245678,
-        mimeType: 'application/pdf',
-        status: 'completed',
-        createdAt: '2024-01-15T10:30:00Z',
-        updatedAt: '2024-01-15T14:20:00Z'
-      },
-      {
-        id: 'doc_2',
-        name: 'Painting Contract - Rodriguez Co',
-        type: 'contract',
-        estimateId: 'EST-abc123',
-        envelopeId: 'env_xyz789',
-        filePath: '/uploads/documents/contract_EST-abc123.pdf',
-        fileSize: 567890,
-        mimeType: 'application/pdf',
-        status: 'signed',
-        createdAt: '2024-01-15T14:25:00Z',
-        updatedAt: '2024-01-16T09:15:00Z'
-      }
-    ];
-
+    const documents = await all<Document>('documents');
     return NextResponse.json(documents);
   } catch (error) {
     console.error('Error fetching documents:', error);
@@ -56,6 +32,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const perm = await requirePermission('documents');
+  if (perm.error) return perm.error;
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -78,19 +56,18 @@ export async function POST(request: NextRequest) {
     const buffer = new Uint8Array(arrayBuffer);
     await writeFile(filepath, buffer);
 
-    const document: Document = {
-      id: `doc_${uuidv4()}`,
-      name,
-      type: type as any,
-      estimateId,
-      envelopeId,
+    const document = await insert<Document>('documents', {
+      name: name || file.name,
+      type: (type as any) || 'other',
+      estimateId: estimateId || undefined,
+      envelopeId: envelopeId || undefined,
       filePath: `/uploads/documents/${filename}`,
       fileSize: file.size,
       mimeType: file.type,
       status: 'draft',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      updatedAt: new Date().toISOString(),
+    } as Document);
 
     return NextResponse.json(document);
   } catch (error) {
