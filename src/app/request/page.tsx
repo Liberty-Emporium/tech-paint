@@ -56,7 +56,7 @@ export default function RequestEstimatePage() {
   };
 
   const handleSubmit = async () => {
-    if (photos.length === 0) { setError('Please upload at least one photo of the area to be painted.'); return; }
+    // Photos optional for the demo — a description alone generates an estimate.
     if (!form.description.trim()) { setError('Please describe the work that needs to be done.'); return; }
     setError(''); setStep('loading');
     try {
