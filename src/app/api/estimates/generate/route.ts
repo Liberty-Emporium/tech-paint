@@ -67,8 +67,8 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://tech-paint-production.up.railway.app',
-        'X-Title': 'TechPaint',
+        'HTTP-Referer': 'https://techpaint.jays-web.org',
+        'X-Title': 'Coltrane Tech Paint',
       },
       body: JSON.stringify({
         model: model || 'google/gemma-4-31b-it:free',
@@ -113,26 +113,34 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
 }
 
 function ruleBasedEstimate(roomType: string, squareFootageRaw: string) {
-  const squareFootage = parseInt(squareFootageRaw || '0', 10) || 0;
+  // Real-world estimator that ALWAYS produces a sensible, itemized price.
+  // If square footage is missing, use a reasonable per-room default so the
+  // estimate is never $0.
+  const rawSqft = parseInt(squareFootageRaw || '0', 10) || 0;
+  const squareFootage = rawSqft > 0 ? rawSqft : 300; // default ~ a typical room
+
   const rateByRoom: Record<string, number> = {
     interior: 2.5, exterior: 3.5, cabinet: 6.0,
     deck: 4.0, ceiling: 3.0, trim: 1.5,
   };
   const rate = rateByRoom[roomType?.toLowerCase()] || 3.0;
   const paintCost = squareFootage * rate;
-  const laborCost = paintCost * 0.6;
-  const subtotal = paintCost + laborCost;
-  const tax = subtotal * 0.08;
+  const prepCost = Math.round(squareFootage * 0.8 * 100) / 100;  // sanding, caulk, patching
+  const primerCost = Math.round(squareFootage * 0.5 * 100) / 100; // primer coat
+  const laborCost = Math.round(paintCost * 0.6 * 100) / 100;
+  const subtotal = Math.round((paintCost + prepCost + primerCost + laborCost) * 100) / 100;
+  const tax = Math.round(subtotal * 0.08 * 100) / 100;
   const total = Math.round((subtotal + tax) * 100) / 100;
   const label = roomType ? roomType.charAt(0).toUpperCase() + roomType.slice(1) : 'Interior';
 
-  return {
-    items: [
-      { id: uuidv4(), description: `${label} painting (${squareFootage} sq ft @ $${rate}/sq ft)`, quantity: squareFootage || 1, unitPrice: rate, total: Math.round(paintCost * 100) / 100 },
-      { id: uuidv4(), description: 'Labor', quantity: 1, unitPrice: Math.round(laborCost * 100) / 100, total: Math.round(laborCost * 100) / 100 },
-    ],
-    total,
-  };
+  const items = [
+    { id: uuidv4(), description: `${label} paint & materials (${squareFootage} sq ft @ $${rate.toFixed(2)}/sq ft)`, quantity: 1, unitPrice: Math.round(paintCost * 100) / 100, total: Math.round(paintCost * 100) / 100 },
+    { id: uuidv4(), description: 'Surface prep (sanding, patching, caulk)', quantity: 1, unitPrice: prepCost, total: prepCost },
+    { id: uuidv4(), description: 'Primer coat', quantity: 1, unitPrice: primerCost, total: primerCost },
+    { id: uuidv4(), description: 'Labor', quantity: 1, unitPrice: laborCost, total: laborCost },
+  ];
+
+  return { items, totals: { subtotal, tax, total }, total };
 }
 
 export async function POST(request: NextRequest) {
@@ -193,14 +201,26 @@ export async function POST(request: NextRequest) {
     let estimateResult: { items: any[]; total: number } | null = null;
 
     if (settings.llmApiKey) {
-      estimateResult = await tryAIEstimate(
-        settings.llmApiKey,
-        settings.llmModel,
-        settings.llmTemperature,
-        settings.llmMaxTokens,
-        { customerName, propertyDescription, roomType, squareFootage: squareFootageRaw, notes },
-        photoDataUrls
-      );
+      // Try the configured model first, then a small set of reliable alternates
+      // so a rate-limited/busy free model doesn't drop us to the rule-based calc.
+      const fallbackModels = settings.llmModel
+        ? [String(settings.llmModel), 'google/gemma-4-26b-a4b-it:free', 'meta-llama/llama-3.1-8b-instruct:free']
+        : ['google/gemma-4-31b-it:free', 'google/gemma-4-26b-a4b-it:free', 'meta-llama/llama-3.1-8b-instruct:free'];
+
+      const seen = new Set<string>();
+      for (const m of fallbackModels) {
+        if (seen.has(m)) continue;
+        seen.add(m);
+        estimateResult = await tryAIEstimate(
+          settings.llmApiKey,
+          m,
+          settings.llmTemperature,
+          settings.llmMaxTokens,
+          { customerName, propertyDescription, roomType, squareFootage: squareFootageRaw, notes },
+          photoDataUrls
+        );
+        if (estimateResult) break;
+      }
     }
 
     if (!estimateResult) {
