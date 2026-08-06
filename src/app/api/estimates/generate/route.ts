@@ -71,7 +71,7 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
         'X-Title': 'Coltrane Tech Paint',
       },
       body: JSON.stringify({
-        model: model || 'google/gemma-4-31b-it:free',
+        model: model || 'google/gemma-4-26b-a4b-it:free',
         messages: [
           { role: 'system', content: 'You are a painting estimate generator. Respond with ONLY valid JSON, no markdown, no explanation.' },
           { role: 'user', content },
@@ -79,6 +79,9 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
         temperature: temperature ?? 0.7,
         max_tokens: maxTokens ?? 4000,
       }),
+      // Allow enough time for the (sometimes slow) free model to finish,
+      // but fail fast enough that a hung model doesn't block the whole estimate.
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
@@ -204,8 +207,8 @@ export async function POST(request: NextRequest) {
       // Try the configured model first, then a small set of reliable alternates
       // so a rate-limited/busy free model doesn't drop us to the rule-based calc.
       const fallbackModels = settings.llmModel
-        ? [String(settings.llmModel), 'google/gemma-4-26b-a4b-it:free', 'meta-llama/llama-3.1-8b-instruct:free']
-        : ['google/gemma-4-31b-it:free', 'google/gemma-4-26b-a4b-it:free', 'meta-llama/llama-3.1-8b-instruct:free'];
+        ? [String(settings.llmModel), 'google/gemma-4-26b-a4b-it:free']
+        : ['google/gemma-4-26b-a4b-it:free', 'google/gemma-4-31b-it:free'];
 
       const seen = new Set<string>();
       for (const m of fallbackModels) {
