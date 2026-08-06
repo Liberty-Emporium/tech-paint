@@ -71,7 +71,7 @@ Include realistic line items for paint, labor, prep work, materials, etc. Use cu
         'X-Title': 'Coltrane Tech Paint',
       },
       body: JSON.stringify({
-        model: model || 'google/gemma-4-26b-a4b-it:free',
+        model: model || 'openai/gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a painting estimate generator. Respond with ONLY valid JSON, no markdown, no explanation.' },
           { role: 'user', content },
@@ -207,8 +207,8 @@ export async function POST(request: NextRequest) {
       // Try the configured model first, then a small set of reliable alternates
       // so a rate-limited/busy free model doesn't drop us to the rule-based calc.
       const fallbackModels = settings.llmModel
-        ? [String(settings.llmModel), 'google/gemma-4-26b-a4b-it:free']
-        : ['google/gemma-4-26b-a4b-it:free', 'google/gemma-4-31b-it:free'];
+        ? [String(settings.llmModel), 'openai/gpt-4o-mini', 'google/gemini-2.5-flash-lite']
+        : ['openai/gpt-4o-mini', 'google/gemini-2.5-flash-lite', 'google/gemma-4-26b-a4b-it:free'];
 
       const seen = new Set<string>();
       for (const m of fallbackModels) {

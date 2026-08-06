@@ -9,11 +9,11 @@ const MODELS = [
   { id: 'nvidia/nemotron-nano-12b-v2-vl:free', name: 'Nemotron Nano 12B VL (Free, Vision)', provider: 'Nvidia', free: true, vision: true },
   { id: 'meta-llama/llama-3.1-8b-instruct:free', name: 'Llama 3.1 8B (Free, Text Only)', provider: 'Meta', free: true, vision: false },
   { id: 'deepseek/deepseek-r1-0528:free', name: 'DeepSeek R1 (Free, Text Only)', provider: 'DeepSeek', free: true, vision: false },
-  { id: 'google/gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite ($0.10/M, Vision)', provider: 'Google', free: false, vision: true },
+  { id: 'amazon/nova-lite-v1', name: 'Amazon Nova Lite ($0.06/M, Vision) — cheapest', provider: 'AWS', free: false, vision: true },
+  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini ($0.15/M, Vision) — RECOMMENDED (smart)', provider: 'OpenAI', free: false, vision: true },
   { id: 'openai/gpt-4.1-nano', name: 'GPT-4.1 Nano ($0.10/M, Vision)', provider: 'OpenAI', free: false, vision: true },
   { id: 'meta-llama/llama-4-scout', name: 'Llama 4 Scout ($0.10/M, Vision)', provider: 'Meta', free: false, vision: true },
   { id: 'qwen/qwen3-vl-32b-instruct', name: 'Qwen 3 VL 32B ($0.10/M, Vision)', provider: 'Alibaba', free: false, vision: true },
-  { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini ($0.15/M, Vision)', provider: 'OpenAI', free: false, vision: true },
 ];
 
 interface Settings {
